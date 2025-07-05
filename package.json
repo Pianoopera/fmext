@@ -1,0 +1,44 @@
+{
+  "name": "fmstat",
+  "version": "0.1.0",
+  "description": "Fmstat CLI tool built with Deno",
+  "bin": {
+    "fmstat": "install.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "keywords": [
+    "cli",
+    "deno",
+    "fmstat"
+  ],
+  "author": "Pianoopera",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pianoopera/fmstat.git"
+  },
+  "homepage": "https://github.com/Pianoopera/fmstat#readme",
+  "bugs": {
+    "url": "https://github.com/Pianoopera/fmstat/issues"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist/",
+    "install.js",
+    "README.md",
+    "LICENSE"
+  ]
+}

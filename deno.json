@@ -1,0 +1,34 @@
+{
+  "name": "@fmstat/fmstat",
+  "version": "1.0.0",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-read --allow-run",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "build": "deno compile --allow-read --output ./dist/fmstat ./mod.ts",
+    "dev": "deno run --allow-read ./mod.ts"
+  },
+  "imports": {
+    "@std/yaml": "jsr:@std/yaml@^1.0.5",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/fs": "jsr:@std/fs@^1.0.5",
+    "@std/testing": "jsr:@std/testing@^1.0.3"
+  },
+  "exclude": ["dist/", "node_modules/"],
+  "compilerOptions": {
+    "strict": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "fmt": {
+    "include": ["src/", "tests/"],
+    "exclude": ["README.md"]
+  },
+  "lint": {
+    "include": ["src/", "tests/", "mod.ts"],
+    "exclude": ["README.md"]
+  },
+  "test": {
+    "include": ["tests/", "src/**/*_test.ts"]
+  }
+}
