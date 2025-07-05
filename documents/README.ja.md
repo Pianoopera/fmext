@@ -15,7 +15,7 @@ DenoでビルドされたFast and Reliable YAML Front Matter パーサー CLI �
 
 ## インストール
 
-### npm から
+### npm から （TODO）
 
 ```bash
 npm install -g fmext

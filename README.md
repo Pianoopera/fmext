@@ -16,7 +16,7 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 
 ## Installation
 
-### From npm
+### From npm (TODO)
 
 ```bash
 npm install -g fmext
