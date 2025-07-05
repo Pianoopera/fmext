@@ -1,4 +1,4 @@
-# fmstat
+# fmext
 
 A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract and analyze YAML front matter from Markdown files with ease.
 
@@ -19,15 +19,15 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 ### From npm
 
 ```bash
-npm install -g fmstat
+npm install -g fmext
 ```
 
 ### From source (requires Deno)
 
 ```bash
-git clone https://github.com/Pianoopera/fmstat.git
-cd fmstat
-deno compile --allow-read --output fmstat mod.ts
+git clone https://github.com/Pianoopera/fmext.git
+cd fmext
+deno compile --allow-read --output fmext mod.ts
 ```
 
 ## Usage
@@ -36,66 +36,66 @@ deno compile --allow-read --output fmstat mod.ts
 
 ```bash
 # Parse front matter from a single file
-fmstat document.md
+fmext document.md
 
 # Parse multiple files
-fmstat *.md
+fmext *.md
 
 # Parse files with glob patterns
-fmstat docs/**/*.md
+fmext docs/**/*.md
 ```
 
 ### Extract Specific Keys
 
 ```bash
 # Extract a simple key
-fmstat --key title document.md
+fmext --key title document.md
 
 # Extract nested keys using dot notation
-fmstat --key "metadata.author" document.md
-fmstat --key "settings.theme.dark" document.md
+fmext --key "metadata.author" document.md
+fmext --key "settings.theme.dark" document.md
 ```
 
 ### Filter Files by Key-Value Pairs
 
 ```bash
 # Filter files where 'topic' equals 'react'
-fmstat --key topic --value react articles/*.md
+fmext --key topic --value react articles/*.md
 
 # Filter files where 'tags' array contains 'javascript'
-fmstat --key tags --value javascript posts/*.md
+fmext --key tags --value javascript posts/*.md
 
 # Filter files where 'published' is true
-fmstat --key published --value true content/*.md
+fmext --key published --value true content/*.md
 
 # Filter files where 'priority' is 1
-fmstat --key priority --value 1 tasks/*.md
+fmext --key priority --value 1 tasks/*.md
 ```
 
 ### Count Values
 
 ```bash
 # Count individual values and array elements across files
-fmstat --count *.md
+fmext --count *.md
 
 # Count only elements from specific key
-fmstat --count --key tags *.md
+fmext --count --key tags *.md
 ```
 
 ### Silent Mode
 
 ```bash
 # Skip files without front matter silently
-fmstat --silent *.md
+fmext --silent *.md
 
 # Combine with key extraction
-fmstat --silent --key title *.md
+fmext --silent --key title *.md
 ```
 
 ### Help
 
 ```bash
-fmstat --help
+fmext --help
 ```
 
 ## Examples
@@ -121,7 +121,7 @@ Content here...
 **Commands:**
 ```bash
 # Get all front matter
-$ fmstat example.md
+$ fmext example.md
 {
   "title": "My Document",
   "author": "John Doe",
@@ -130,11 +130,11 @@ $ fmstat example.md
 }
 
 # Get specific key
-$ fmstat --key title example.md
+$ fmext --key title example.md
 My Document
 
 # Get array values
-$ fmstat --key tags example.md
+$ fmext --key tags example.md
 markdown, yaml
 ```
 
@@ -161,13 +161,13 @@ metadata:
 **Commands:**
 ```bash
 # Extract nested values
-$ fmstat --key "metadata.author" config.md
+$ fmext --key "metadata.author" config.md
 Jane Smith
 
-$ fmstat --key "metadata.settings.theme" config.md
+$ fmext --key "metadata.settings.theme" config.md
 dark
 
-$ fmstat --key "metadata.social.github" config.md
+$ fmext --key "metadata.social.github" config.md
 janesmith
 ```
 
@@ -175,12 +175,12 @@ janesmith
 
 ```bash
 # Process multiple files
-$ fmstat blog/*.md
+$ fmext blog/*.md
 blog/post1.md: {"title": "First Post", "date": "2023-01-01"}
 blog/post2.md: {"title": "Second Post", "date": "2023-01-02"}
 
 # Extract titles from all posts
-$ fmstat --key title blog/*.md
+$ fmext --key title blog/*.md
 blog/post1.md: First Post
 blog/post2.md: Second Post
 ```
@@ -211,7 +211,7 @@ tags:
 **Commands:**
 ```bash
 # Count all values across files
-$ fmstat --count blog/*.md
+$ fmext --count blog/*.md
 String values:
   First Post: 1
   Second Post: 1
@@ -222,7 +222,7 @@ Array elements:
   web: 1
 
 # Count only tags
-$ fmstat --count --key tags blog/*.md
+$ fmext --count --key tags blog/*.md
 Array elements:
   javascript: 2
   react: 1
@@ -271,22 +271,22 @@ published: false
 **Commands:**
 ```bash
 # Find all React articles
-$ fmstat --key topic --value react articles/*.md
+$ fmext --key topic --value react articles/*.md
 articles/article1.md
 articles/article3.md
 
 # Find all published articles
-$ fmstat --key published --value true articles/*.md
+$ fmext --key published --value true articles/*.md
 articles/article1.md
 articles/article2.md
 
 # Find articles containing 'react' tag
-$ fmstat --key tags --value react articles/*.md
+$ fmext --key tags --value react articles/*.md
 articles/article1.md
 articles/article3.md
 
 # Find articles containing 'javascript' tag
-$ fmstat --key tags --value javascript articles/*.md
+$ fmext --key tags --value javascript articles/*.md
 articles/article1.md
 articles/article2.md
 articles/article3.md
@@ -312,7 +312,7 @@ articles/article3.md
 
 ## Filtering Behavior
 
-When using `--value` with `--key`, fmstat filters files based on the specified key-value pair:
+When using `--value` with `--key`, fmext filters files based on the specified key-value pair:
 
 - **String values**: Exact match comparison
 - **Array values**: Checks if the value is contained in the array
@@ -322,7 +322,7 @@ When using `--value` with `--key`, fmstat filters files based on the specified k
 
 ## Error Handling
 
-fmstat handles various error conditions gracefully:
+fmext handles various error conditions gracefully:
 
 - **No front matter**: Reports missing front matter (unless `--silent`)
 - **Invalid YAML**: Reports YAML syntax errors with details
@@ -339,8 +339,8 @@ fmstat handles various error conditions gracefully:
 ### Setup
 
 ```bash
-git clone https://github.com/Pianoopera/fmstat.git
-cd fmstat
+git clone https://github.com/Pianoopera/fmext.git
+cd fmext
 ```
 
 ### Running Tests

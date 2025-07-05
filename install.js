@@ -11,11 +11,11 @@ const arch = os.arch();
 let binaryName;
 
 if (platform === 'win32') {
-  binaryName = arch === 'x64' ? 'fmstat-windows-x64.exe' : null;
+  binaryName = arch === 'x64' ? 'fmext-windows-x64.exe' : null;
 } else if (platform === 'darwin') {
-  binaryName = arch === 'arm64' ? 'fmstat-macos-arm64' : 'fmstat-macos-x64';
+  binaryName = arch === 'arm64' ? 'fmext-macos-arm64' : 'fmext-macos-x64';
 } else if (platform === 'linux') {
-  binaryName = arch === 'x64' ? 'fmstat-linux-x64' : null;
+  binaryName = arch === 'x64' ? 'fmext-linux-x64' : null;
 }
 
 if (!binaryName) {

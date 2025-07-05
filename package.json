@@ -1,9 +1,9 @@
 {
-  "name": "fmstat",
+  "name": "fmext",
   "version": "0.1.0",
-  "description": "Fmstat CLI tool built with Deno",
+  "description": "fmext CLI tool built with Deno",
   "bin": {
-    "fmstat": "install.js"
+    "fmext": "install.js"
   },
   "scripts": {
     "postinstall": "node install.js"
@@ -11,17 +11,17 @@
   "keywords": [
     "cli",
     "deno",
-    "fmstat"
+    "fmext"
   ],
   "author": "Pianoopera",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Pianoopera/fmstat.git"
+    "url": "git+https://github.com/Pianoopera/fmext.git"
   },
-  "homepage": "https://github.com/Pianoopera/fmstat#readme",
+  "homepage": "https://github.com/Pianoopera/fmext#readme",
   "bugs": {
-    "url": "https://github.com/Pianoopera/fmstat/issues"
+    "url": "https://github.com/Pianoopera/fmext/issues"
   },
   "os": [
     "linux",

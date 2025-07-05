@@ -55,10 +55,10 @@ function parseArgs(args: string[]): CLIArgs {
 
 function showHelp() {
   console.log(`
-fmstat - YAML Front Matter Parser
+fmext - YAML Front Matter Parser
 
 USAGE:
-    fmstat [OPTIONS] <FILES...>
+    fmext [OPTIONS] <FILES...>
 
 OPTIONS:
     -k, --key <KEY>      Extract specific key from front matter (supports dot notation for nested keys)
@@ -68,15 +68,15 @@ OPTIONS:
     -h, --help           Show this help message
 
 EXAMPLES:
-    fmstat file.md                         # Parse front matter from file.md
-    fmstat --key title *.md                # Extract 'title' key from all .md files
-    fmstat --key "meta.author" doc.md      # Extract nested key using dot notation
-    fmstat --key topic --value react *.md  # Filter files where 'topic' equals 'react'
-    fmstat --key tags --value javascript *.md # Filter files where 'tags' array contains 'javascript'
-    fmstat --key published --value true *.md  # Filter files where 'published' is true
-    fmstat --count *.md                    # Count individual values and array elements across files
-    fmstat --count --key tags *.md         # Count only elements from 'tags' key
-    fmstat --silent *.md                   # Parse all .md files, skip those without front matter
+    fmext file.md                         # Parse front matter from file.md
+    fmext --key title *.md                # Extract 'title' key from all .md files
+    fmext --key "meta.author" doc.md      # Extract nested key using dot notation
+    fmext --key topic --value react *.md  # Filter files where 'topic' equals 'react'
+    fmext --key tags --value javascript *.md # Filter files where 'tags' array contains 'javascript'
+    fmext --key published --value true *.md  # Filter files where 'published' is true
+    fmext --count *.md                    # Count individual values and array elements across files
+    fmext --count --key tags *.md         # Count only elements from 'tags' key
+    fmext --silent *.md                   # Parse all .md files, skip those without front matter
 
 DESCRIPTION:
     Parses YAML front matter from Markdown files and outputs the results.

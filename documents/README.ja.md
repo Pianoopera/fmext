@@ -1,4 +1,4 @@
-# fmstat
+# fmext
 
 DenoでビルドされたFast and Reliable YAML Front Matter パーサー CLI ツールです。MarkdownファイルからYAML Front Matterを簡単に抽出・解析できます。
 
@@ -18,15 +18,15 @@ DenoでビルドされたFast and Reliable YAML Front Matter パーサー CLI �
 ### npm から
 
 ```bash
-npm install -g fmstat
+npm install -g fmext
 ```
 
 ### ソースから（Denoが必要）
 
 ```bash
-git clone https://github.com/Pianoopera/fmstat.git
-cd fmstat
-deno compile --allow-read --output fmstat mod.ts
+git clone https://github.com/Pianoopera/fmext.git
+cd fmext
+deno compile --allow-read --output fmext mod.ts
 ```
 
 ## 使い方
@@ -35,50 +35,50 @@ deno compile --allow-read --output fmstat mod.ts
 
 ```bash
 # 単一ファイルからFront Matterを解析
-fmstat document.md
+fmext document.md
 
 # 複数ファイルを解析
-fmstat *.md
+fmext *.md
 
 # globパターンでファイルを解析
-fmstat docs/**/*.md
+fmext docs/**/*.md
 ```
 
 ### 特定のキーを抽出
 
 ```bash
 # 単純なキーを抽出
-fmstat --key title document.md
+fmext --key title document.md
 
 # ドット記法を使用してネストしたキーを抽出
-fmstat --key "metadata.author" document.md
-fmstat --key "settings.theme.dark" document.md
+fmext --key "metadata.author" document.md
+fmext --key "settings.theme.dark" document.md
 ```
 
 ### 値のカウント
 
 ```bash
 # ファイル間で個別の値と配列要素をカウント
-fmstat --count *.md
+fmext --count *.md
 
 # 特定のキーからの要素のみをカウント
-fmstat --count --key tags *.md
+fmext --count --key tags *.md
 ```
 
 ### サイレントモード
 
 ```bash
 # Front Matterのないファイルをサイレントでスキップ
-fmstat --silent *.md
+fmext --silent *.md
 
 # キー抽出と組み合わせ
-fmstat --silent --key title *.md
+fmext --silent --key title *.md
 ```
 
 ### ヘルプ
 
 ```bash
-fmstat --help
+fmext --help
 ```
 
 ## 例
@@ -104,7 +104,7 @@ published: true
 **コマンド:**
 ```bash
 # すべてのFront Matterを取得
-$ fmstat example.md
+$ fmext example.md
 {
   "title": "My Document",
   "author": "John Doe",
@@ -113,11 +113,11 @@ $ fmstat example.md
 }
 
 # 特定のキーを取得
-$ fmstat --key title example.md
+$ fmext --key title example.md
 My Document
 
 # 配列値を取得
-$ fmstat --key tags example.md
+$ fmext --key tags example.md
 markdown, yaml
 ```
 
@@ -144,13 +144,13 @@ metadata:
 **コマンド:**
 ```bash
 # ネストした値を抽出
-$ fmstat --key "metadata.author" config.md
+$ fmext --key "metadata.author" config.md
 Jane Smith
 
-$ fmstat --key "metadata.settings.theme" config.md
+$ fmext --key "metadata.settings.theme" config.md
 dark
 
-$ fmstat --key "metadata.social.github" config.md
+$ fmext --key "metadata.social.github" config.md
 janesmith
 ```
 
@@ -158,12 +158,12 @@ janesmith
 
 ```bash
 # 複数ファイルを処理
-$ fmstat blog/*.md
+$ fmext blog/*.md
 blog/post1.md: {"title": "First Post", "date": "2023-01-01"}
 blog/post2.md: {"title": "Second Post", "date": "2023-01-02"}
 
 # すべての投稿からタイトルを抽出
-$ fmstat --key title blog/*.md
+$ fmext --key title blog/*.md
 blog/post1.md: First Post
 blog/post2.md: Second Post
 ```
@@ -194,7 +194,7 @@ tags:
 **コマンド:**
 ```bash
 # ファイル間ですべての値をカウント
-$ fmstat --count blog/*.md
+$ fmext --count blog/*.md
 String values:
   First Post: 1
   Second Post: 1
@@ -205,7 +205,7 @@ Array elements:
   web: 1
 
 # タグのみをカウント
-$ fmstat --count --key tags blog/*.md
+$ fmext --count --key tags blog/*.md
 Array elements:
   javascript: 2
   react: 1
@@ -232,7 +232,7 @@ Array elements:
 
 ## エラーハンドリング
 
-fmstatは様々なエラー条件を適切に処理します：
+fmextは様々なエラー条件を適切に処理します：
 
 - **Front Matterなし**: Front Matterの欠如を報告（`--silent`でない場合）
 - **無効なYAML**: 詳細なYAML構文エラーを報告
@@ -249,8 +249,8 @@ fmstatは様々なエラー条件を適切に処理します：
 ### セットアップ
 
 ```bash
-git clone https://github.com/Pianoopera/fmstat.git
-cd fmstat
+git clone https://github.com/Pianoopera/fmext.git
+cd fmext
 ```
 
 ### テストの実行

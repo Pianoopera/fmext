@@ -1,12 +1,12 @@
 {
-  "name": "@fmstat/fmstat",
+  "name": "@fmext/fmext",
   "version": "1.0.0",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-read --allow-run",
     "fmt": "deno fmt",
     "lint": "deno lint",
-    "build": "deno compile --allow-read --output ./dist/fmstat ./mod.ts",
+    "build": "deno compile --allow-read --output ./dist/fmext ./mod.ts",
     "dev": "deno run --allow-read ./mod.ts"
   },
   "imports": {
