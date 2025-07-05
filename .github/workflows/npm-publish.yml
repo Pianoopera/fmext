@@ -2,13 +2,62 @@
 name: NPM Publish
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'  # タグがv1.0.0のような形式の時に実行
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "main"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "latest"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Configure git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Update version and create tag
+        run: |
+          npm version ${{ github.event.inputs.version }}
+          git push origin main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get new version and set output
+        id: version
+        run: |
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "version=v$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Version updated to v$NEW_VERSION and tag created successfully by ${{ github.actor }}"
+          echo "This will trigger the publish workflow automatically"
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: create-tag
 
     strategy:
       matrix:
@@ -51,7 +100,7 @@ jobs:
           path: dist/${{ matrix.output_name }}*
 
   publish:
-    needs: build
+    needs: [build, create-tag]
     runs-on: ubuntu-latest
 
     steps:
