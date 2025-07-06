@@ -124,13 +124,79 @@ jobs:
         with:
           path: dist-artifacts/
 
-      - name: Organize artifacts
+      - name: Organize artifacts and verify
         run: |
+          # Create dist directory
           mkdir -p dist
+          
+          # Move all binaries to dist directory
+          echo "Moving artifacts to dist directory..."
           find dist-artifacts/ -name "fmext-*" -type f -exec cp {} dist/ \;
-          chmod +x dist/fmext-* || true
+          
+          # Set execute permissions for Unix binaries
+          echo "Setting execute permissions..."
+          chmod +x dist/fmext-linux-x64 || true
+          chmod +x dist/fmext-macos-x64 || true
+          chmod +x dist/fmext-macos-arm64 || true
+          
+          # List the contents to verify
+          echo "Contents of dist directory:"
+          ls -la dist/
+          
+          # Verify all required binaries are present
+          echo "Verifying required binaries..."
+          for binary in "fmext-linux-x64" "fmext-macos-x64" "fmext-macos-arm64" "fmext-windows-x64.exe"; do
+            if [ ! -f "dist/$binary" ]; then
+              echo "ERROR: Missing binary: $binary"
+              exit 1
+            else
+              echo "✓ Found: $binary"
+            fi
+          done
+          
+          # Check file sizes to ensure binaries are not empty
+          echo -e "\nChecking file sizes..."
+          for file in dist/*; do
+            size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+            echo "$file: $size bytes"
+            if [ "$size" -eq 0 ]; then
+              echo "ERROR: Binary $file is empty!"
+              exit 1
+            fi
+          done
 
-      - name: Publish to NPM
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Test install.js locally
+        run: |
+          # Test that install.js works correctly
+          echo "Testing install.js..."
+          npm_lifecycle_event=postinstall node install.js
+
+      - name: Create npm package tarball (dry-run)
+        run: |
+          # Create a tarball to verify what will be published
+          npm pack --dry-run
+          
+          # Actually create the tarball and check its contents
+          npm pack
+          echo -e "\nChecking tarball contents:"
+          tar -tzf *.tgz | grep -E "(dist/|install\.js)" || true
+
+      # - name: Publish to NPM
+      #   run: |
+      #     # Ensure we're publishing the correct package
+      #     echo "Publishing package..."
+      #     npm publish --access public
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # - name: Verify published package
+      #   run: |
+      #     # Wait a bit for npm to propagate
+      #     sleep 10
+          
+      #     # Get package info
+      #     PACKAGE_NAME=$(node -p "require('./package.json').name")
+      #     PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+      #     echo "Verifying published package: $PACKAGE_NAME@$PACKAGE_VERSION"
+      #     npm view "$PACKAGE_NAME@$PACKAGE_VERSION" dist.tarball || true
