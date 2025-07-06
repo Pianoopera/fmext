@@ -271,6 +271,23 @@ deno task build
 deno task dev [args...]
 ```
 
+### Release Flow
+
+github actions [npm-publish](https://github.com/Pianoopera/fmext/actions/workflows/npm-publish.yml)
+
+```yml
+inputs:
+  version:
+    description: "Version type"
+    required: true
+    default: "patch"
+    type: choice
+    options:
+      - patch
+      - minor
+      - major
+```
+
 ## 貢献
 
 1. リポジトリをフォーク

@@ -361,6 +361,23 @@ deno task build
 deno task dev [args...]
 ```
 
+### Release Flow
+
+github actions [npm-publish](https://github.com/Pianoopera/fmext/actions/workflows/npm-publish.yml)
+
+```yml
+inputs:
+  version:
+    description: "Version type"
+    required: true
+    default: "patch"
+    type: choice
+    options:
+      - patch
+      - minor
+      - major
+```
+
 ## Contributing
 
 1. Fork the repository
@@ -378,15 +395,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 - [gray-matter](https://github.com/jonschlinkert/gray-matter) - JavaScript front matter parser
 - [front-matter](https://github.com/jxson/front-matter) - Extract YAML front matter from strings
-
-## Changelog
-
-### 1.0.0
-
-- Initial release
-- YAML front matter parsing
-- Key extraction with dot notation
-- Silent mode
-- Multiple file support
-- Comprehensive error handling
-- Cross-platform compatibility
