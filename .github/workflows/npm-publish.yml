@@ -91,13 +91,7 @@ jobs:
 
       - name: Commit and push version change
         run: |
-          git add package.json package-lock.json
-          git commit -m "chore: bump version to v${{ env.NEW_VERSION }}"
-          git push origin main
-          
-          # Create and push tag
-          git tag "v${{ env.NEW_VERSION }}"
-          git push origin "v${{ env.NEW_VERSION }}"
+          git push origin main --tags
 
       - name: Summary
         run: |
