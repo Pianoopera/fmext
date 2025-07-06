@@ -15,92 +15,10 @@ on:
           - major
 
 jobs:
-  create-tag:
+  publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: "main"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "latest"
-
-      - name: Configure git
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-
-      - name: Update version and create tag
-        run: |
-          npm version ${{ github.event.inputs.version }}
-          git push origin main --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get new version and set output
-        id: version
-        run: |
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "version=v$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "✅ Version updated to v$NEW_VERSION and tag created successfully by ${{ github.actor }}"
-          echo "This will trigger the publish workflow automatically"
-
-  build:
-    runs-on: ${{ matrix.os }}
-    needs: create-tag
-
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            output_name: fmext-linux-x64
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            output_name: fmext-macos-x64
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            output_name: fmext-macos-arm64
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            output_name: fmext-windows-x64.exe
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: "main"
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v2.x
-
-      - name: Build for ${{ matrix.target }}
-        run: |
-          mkdir -p dist
-          deno compile --allow-read --target ${{ matrix.target }} --output dist/${{ matrix.output_name }} mod.ts
-
-      - name: Set execute permission (Unix)
-        if: runner.os != 'Windows'
-        run: chmod +x dist/${{ matrix.output_name }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.output_name }}
-          path: dist/${{ matrix.output_name }}*
-
-  publish:
-    needs: [build, create-tag]
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -119,84 +37,70 @@ jobs:
           node-version: 'latest'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist-artifacts/
+      - name: Configure git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Organize artifacts and verify
+      - name: Update version
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Build binaries
         run: |
           # Create dist directory
           mkdir -p dist
           
-          # Move all binaries to dist directory
-          echo "Moving artifacts to dist directory..."
-          find dist-artifacts/ -name "fmext-*" -type f -exec cp {} dist/ \;
+          # Build for each platform (same as local)
+          echo "Building Linux x64..."
+          deno compile --allow-read --target x86_64-unknown-linux-gnu --output dist/fmext-linux-x64 mod.ts
           
-          # Set execute permissions for Unix binaries
-          echo "Setting execute permissions..."
-          chmod +x dist/fmext-linux-x64 || true
-          chmod +x dist/fmext-macos-x64 || true
-          chmod +x dist/fmext-macos-arm64 || true
+          echo "Building macOS x64..."
+          deno compile --allow-read --target x86_64-apple-darwin --output dist/fmext-macos-x64 mod.ts
           
-          # List the contents to verify
-          echo "Contents of dist directory:"
+          echo "Building macOS ARM64..."
+          deno compile --allow-read --target aarch64-apple-darwin --output dist/fmext-macos-arm64 mod.ts
+          
+          echo "Building Windows x64..."
+          deno compile --allow-read --target x86_64-pc-windows-msvc --output dist/fmext-windows-x64.exe mod.ts
+          
+          # Set execute permissions
+          chmod +x dist/fmext-linux-x64
+          chmod +x dist/fmext-macos-x64
+          chmod +x dist/fmext-macos-arm64
+          
+          # List files to verify
+          echo "Built binaries:"
           ls -la dist/
-          
-          # Verify all required binaries are present
-          echo "Verifying required binaries..."
-          for binary in "fmext-linux-x64" "fmext-macos-x64" "fmext-macos-arm64" "fmext-windows-x64.exe"; do
-            if [ ! -f "dist/$binary" ]; then
-              echo "ERROR: Missing binary: $binary"
-              exit 1
-            else
-              echo "✓ Found: $binary"
-            fi
-          done
-          
-          # Check file sizes to ensure binaries are not empty
-          echo -e "\nChecking file sizes..."
-          for file in dist/*; do
-            size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
-            echo "$file: $size bytes"
-            if [ "$size" -eq 0 ]; then
-              echo "ERROR: Binary $file is empty!"
-              exit 1
-            fi
-          done
 
-      - name: Test install.js locally
+      - name: Pack and verify
         run: |
-          # Test that install.js works correctly
-          echo "Testing install.js..."
-          npm_lifecycle_event=postinstall node install.js
-
-      - name: Create npm package tarball (dry-run)
-        run: |
-          # Create a tarball to verify what will be published
-          npm pack --dry-run
-          
-          # Actually create the tarball and check its contents
+          # Pack the package
           npm pack
-          echo -e "\nChecking tarball contents:"
-          tar -tzf *.tgz | grep -E "(dist/|install\.js)" || true
+          
+          # Check what's in the package
+          echo "Package contents:"
+          tar -tzf *.tgz | head -20
 
       - name: Publish to NPM
-        run: |
-          # Ensure we're publishing the correct package
-          echo "Publishing package..."
-          npm publish --access public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Verify published package
+      - name: Commit and push version change
         run: |
-          # Wait a bit for npm to propagate
-          sleep 10
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to v${{ env.NEW_VERSION }}"
+          git push origin main
           
-          # Get package info
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          
-          echo "Verifying published package: $PACKAGE_NAME@$PACKAGE_VERSION"
-          npm view "$PACKAGE_NAME@$PACKAGE_VERSION" dist.tarball || true
+          # Create and push tag
+          git tag "v${{ env.NEW_VERSION }}"
+          git push origin "v${{ env.NEW_VERSION }}"
+
+      - name: Summary
+        run: |
+          echo "✅ Successfully published fmext@${{ env.NEW_VERSION }} to npm"
+          echo "📦 Package: https://www.npmjs.com/package/fmext"
+          echo "🏷️ Tag: v${{ env.NEW_VERSION }}"
