@@ -17,9 +17,6 @@ DenoでビルドされたFast and Reliable YAML Front Matter パーサー CLI �
 
 ### npm から
 
-> [!WARNING]
-> 現在は macos-x64 のみ対応、クロスプラットフォーム対応予定
-
 ```bash
 npm install -g fmext
 ```
