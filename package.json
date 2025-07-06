@@ -1,6 +1,6 @@
 {
   "name": "fmext",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "fmext CLI tool built with Deno",
   "bin": {
     "fmext": "install.js"
