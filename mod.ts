@@ -10,9 +10,10 @@ import {
 } from "./src/parser.ts";
 import type { CLIArgs } from "./src/types.ts";
 
-function parseArgs(args: string[]): CLIArgs {
+export function parseArgs(args: string[]): CLIArgs {
   const result: CLIArgs = {
     files: [],
+    filters: [],
     silent: false,
     help: false,
   };
@@ -26,6 +27,16 @@ function parseArgs(args: string[]): CLIArgs {
       result.silent = true;
     } else if (arg === "--count" || arg === "-c") {
       result.count = true;
+    } else if (arg === "--verbose" || arg === "-V") {
+      result.verbose = true;
+    } else if (arg === "--filter" || arg === "-f") {
+      if (i + 2 < args.length) {
+        const key = args[++i];
+        const value = args[++i];
+        result.filters.push({ key, value });
+      } else {
+        throw new Error("--filter requires both key and value arguments");
+      }
     } else if (arg === "--key" || arg === "-k") {
       if (i + 1 < args.length) {
         result.key = args[++i];
@@ -63,8 +74,10 @@ USAGE:
 OPTIONS:
     -k, --key <KEY>      Extract specific key from front matter (supports dot notation for nested keys)
     -v, --value <VALUE>  Filter files where the specified key matches the given value
+    -f, --filter <KEY> <VALUE>  Filter files where KEY matches VALUE (can be used multiple times for AND conditions)
     -c, --count          Count individual values and array elements across files
     -s, --silent         Skip files without front matter silently
+    -V, --verbose        Show detailed processing information
     -h, --help           Show this help message
 
 EXAMPLES:
@@ -72,21 +85,21 @@ EXAMPLES:
     fmext --key title *.md                # Extract 'title' key from all .md files
     fmext --key "meta.author" doc.md      # Extract nested key using dot notation
     fmext --key topic --value react *.md  # Filter files where 'topic' equals 'react'
-    fmext --key tags --value javascript *.md # Filter files where 'tags' array contains 'javascript'
-    fmext --key published --value true *.md  # Filter files where 'published' is true
-    fmext --count *.md                    # Count individual values and array elements across files
-    fmext --count --key tags *.md         # Count only elements from 'tags' key
+    fmext --filter published true *.md    # Filter files where 'published' is true
+    fmext --filter published true --filter type tech *.md  # Multiple filters (AND condition)
+    fmext --count --filter status draft *.md  # Count values from filtered files only
     fmext --silent *.md                   # Parse all .md files, skip those without front matter
 
 DESCRIPTION:
     Parses YAML front matter from Markdown files and outputs the results.
     Front matter should be enclosed in triple dashes (---) at the beginning of the file.
 
-    When using --value, files are filtered based on the specified key-value pair:
+    When using --value or --filter, files are filtered based on the specified key-value pairs:
     - For string values: exact match comparison
     - For array values: checks if the value is contained in the array
     - For boolean/number values: converted to string for comparison
-    When filtering, only matching file paths are output (one per line).
+    - Multiple --filter options create AND conditions (all must match)
+    When filtering, only matching file paths are output (one per line) unless used with --count.
   `);
 }
 
@@ -139,11 +152,82 @@ async function main() {
     }
 
     let hasErrors = false;
+    
+    // First, apply filters to get the list of files to process
+    let filesToProcess = args.files;
+    
+    if (args.filters.length > 0 || (args.key && args.value)) {
+      const filteredFiles: string[] = [];
+      
+      for (const file of args.files) {
+        try {
+          const result = await parseFile(file, { silent: args.silent });
+          
+          if (result.hasError && result.errorMessage) {
+            if (!args.silent) {
+              console.error(`${file}: ${result.errorMessage}`);
+              hasErrors = true;
+            }
+            continue;
+          }
+          
+          if (result.frontMatter === null) {
+            if (!args.silent) {
+              console.error(`${file}: No front matter found`);
+            }
+            continue;
+          }
+          
+          let passesAllFilters = true;
+          
+          // Check --filter conditions (AND logic)
+          for (const filter of args.filters) {
+            const extractedValue = extractKeyValue(result.frontMatter, filter.key);
+            if (!matchesValue(extractedValue, filter.value)) {
+              passesAllFilters = false;
+              break;
+            }
+          }
+          
+          // Check --key --value condition if no --filter is used
+          if (passesAllFilters && args.filters.length === 0 && args.key && args.value) {
+            const extractedValue = extractKeyValue(result.frontMatter, args.key);
+            if (!matchesValue(extractedValue, args.value)) {
+              passesAllFilters = false;
+            }
+          }
+          
+          if (passesAllFilters) {
+            filteredFiles.push(file);
+          }
+        } catch (error) {
+          console.error(`${file}: ${error}`);
+          hasErrors = true;
+        }
+      }
+      
+      // If only filtering (--key --value without --count), output matching files
+      if (!args.count && args.key && args.value && args.filters.length === 0) {
+        for (const file of filteredFiles) {
+          console.log(file);
+        }
+        if (hasErrors) {
+          Deno.exit(1);
+        }
+        return;
+      }
+      
+      filesToProcess = filteredFiles;
+      
+      if (args.verbose) {
+        console.error(`\nFiltered ${args.files.length} files down to ${filesToProcess.length} files\n`);
+      }
+    }
 
     if (args.count) {
       const allCounts = [];
 
-      for (const file of args.files) {
+      for (const file of filesToProcess) {
         try {
           const options: { key?: string; value?: string; silent?: boolean } =
             {};
@@ -187,7 +271,7 @@ async function main() {
         console.log(formattedCounts);
       }
     } else {
-      for (const file of args.files) {
+      for (const file of filesToProcess) {
         try {
           const options: { key?: string; value?: string; silent?: boolean } =
             {};
@@ -215,26 +299,7 @@ async function main() {
             continue;
           }
 
-          // Handle filtering mode when --value is provided
-          if (args.value && args.key) {
-            const extractedValue = extractKeyValue(
-              result.frontMatter,
-              args.key
-            );
-
-            if (extractedValue === undefined) {
-              if (!args.silent) {
-                console.error(`${file}: Key '${args.key}' not found`);
-                hasErrors = true;
-              }
-              continue;
-            }
-
-            if (matchesValue(extractedValue, args.value)) {
-              console.log(file);
-            }
-            continue;
-          }
+          // Skip the filtering mode in this section as files are already filtered
 
           let output: unknown = result.frontMatter;
 
@@ -251,7 +316,7 @@ async function main() {
 
           const formattedOutput = formatOutput(output);
           if (formattedOutput) {
-            if (args.files.length > 1) {
+            if (filesToProcess.length > 1) {
               console.log(`${file}: ${formattedOutput}`);
             } else {
               console.log(formattedOutput);
