@@ -7,8 +7,10 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 - ✅ **Accurate YAML Parsing**: Parse .md files with YAML front matter precisely
 - 🎯 **Key Extraction**: Extract specific keys with support for nested dot notation
 - 🔍 **Value Filtering**: Filter files by specific key-value pairs with array and string matching
+- 🔐 **Advanced Filtering**: Apply multiple filter conditions with AND logic
 - 📊 **Value Counting**: Count occurrences of values and array elements across files
 - 🔇 **Silent Mode**: Skip files without front matter gracefully
+- 📝 **Verbose Mode**: Show detailed processing information
 - ❌ **Error Handling**: Robust YAML parse error handling and reporting
 - 🔍 **Multiple Files**: Process multiple files at once with glob patterns
 - 📦 **Cross-platform**: Works on Windows, macOS, and Linux
@@ -59,17 +61,23 @@ fmext --key "settings.theme.dark" document.md
 ### Filter Files by Key-Value Pairs
 
 ```bash
-# Filter files where 'topic' equals 'react'
+# Filter files where 'topic' equals 'react' (legacy syntax)
 fmext --key topic --value react articles/*.md
 
+# Filter files with new --filter syntax
+fmext --filter topic react articles/*.md
+
+# Apply multiple filters (AND condition)
+fmext --filter published true --filter type tech articles/*.md
+
 # Filter files where 'tags' array contains 'javascript'
-fmext --key tags --value javascript posts/*.md
+fmext --filter tags javascript posts/*.md
 
-# Filter files where 'published' is true
-fmext --key published --value true content/*.md
+# Filter and count values from filtered files only
+fmext --filter status draft --count --key topics articles/*.md
 
-# Filter files where 'priority' is 1
-fmext --key priority --value 1 tasks/*.md
+# Filter with verbose mode to see filtering details
+fmext --filter published false --verbose articles/*.md
 ```
 
 ### Count Values
@@ -230,7 +238,7 @@ Array elements:
   web: 1
 ```
 
-### Example 5: Filter Files by Key-Value Pairs
+### Example 5: Filter Files by Key-Value Pairs (Legacy Syntax)
 
 **Input files:**
 ```markdown
@@ -292,14 +300,81 @@ articles/article2.md
 articles/article3.md
 ```
 
+### Example 6: Advanced Filtering with Multiple Conditions
+
+**Input files:**
+```markdown
+# tech1.md
+---
+title: React Best Practices
+published: true
+type: tech
+topics: ["react", "javascript", "best-practices"]
+---
+
+# tech2.md
+---
+title: Vue.js Guide
+published: false
+type: tech
+topics: ["vue", "javascript"]
+---
+
+# personal1.md
+---
+title: My Journey
+published: true
+type: personal
+topics: ["life", "story"]
+---
+```
+
+**Commands:**
+```bash
+# Single filter condition
+$ fmext --filter published true posts/*.md
+posts/tech1.md
+posts/personal1.md
+
+# Multiple filter conditions (AND logic)
+$ fmext --filter published true --filter type tech posts/*.md
+posts/tech1.md
+
+# Filter with array values
+$ fmext --filter topics react posts/*.md
+posts/tech1.md
+
+# Filter and extract specific key
+$ fmext --filter type tech --key title posts/*.md
+posts/tech1.md: React Best Practices
+posts/tech2.md: Vue.js Guide
+
+# Filter and count
+$ fmext --filter type tech --count --key topics posts/*.md
+Array elements:
+  javascript: 2
+  react: 1
+  vue: 1
+  best-practices: 1
+
+# Filter with verbose mode
+$ fmext --filter published false --filter type tech --verbose posts/*.md
+
+Filtered 3 files down to 1 files
+
+posts/tech2.md
+```
+
 ## CLI Options
 
 | Option | Short | Description |
 |--------|-------|-------------|
 | `--key <KEY>` | `-k` | Extract specific key (supports dot notation for nested keys) |
-| `--value <VALUE>` | `-v` | Filter files where the specified key matches the given value |
+| `--value <VALUE>` | `-v` | Filter files where the specified key matches the given value (requires --key) |
+| `--filter <KEY> <VALUE>` | `-f` | Filter files where KEY matches VALUE (can be used multiple times for AND conditions) |
 | `--count` | `-c` | Count individual values and array elements across files |
 | `--silent` | `-s` | Skip files without front matter silently |
+| `--verbose` | `-V` | Show detailed processing information |
 | `--help` | `-h` | Show help message |
 
 ## Supported YAML Features
@@ -312,12 +387,24 @@ articles/article3.md
 
 ## Filtering Behavior
 
-When using `--value` with `--key`, fmext filters files based on the specified key-value pair:
+fmext supports two filtering syntaxes:
 
+### Legacy Syntax: `--key <KEY> --value <VALUE>`
+- Filters files where the specified key matches the given value
+- Outputs only matching file paths (one per line)
+- Cannot be combined with other filters
+
+### New Syntax: `--filter <KEY> <VALUE>`
+- Can be used multiple times to create AND conditions
+- All filters must match for a file to be included
+- Works with all other options (--count, --key, etc.)
+- Filters are applied before any other processing
+
+### Filtering Rules:
 - **String values**: Exact match comparison
 - **Array values**: Checks if the value is contained in the array
 - **Boolean/Number values**: Converted to string for comparison
-- **Output format**: Only matching file paths are output (one per line)
+- **Multiple filters**: All conditions must be true (AND logic)
 - **Zero matches**: No output when no files match the criteria
 
 ## Error Handling

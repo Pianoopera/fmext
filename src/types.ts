@@ -12,12 +12,19 @@ export interface ParseOptions {
   count?: boolean;
 }
 
+export interface FilterCondition {
+  key: string;
+  value: string;
+}
+
 export interface CLIArgs {
   key?: string;
   value?: string;
   silent?: boolean;
   help?: boolean;
   count?: boolean;
+  verbose?: boolean;
+  filters: FilterCondition[];
   files: string[];
 }
 
