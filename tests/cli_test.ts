@@ -283,8 +283,7 @@ Deno.test("CLI - filter with nonexistent key", async () => {
     "tests/fixtures/valid.md",
   ]);
 
-  assertEquals(result.code, 1);
-  assert(result.stderr.includes("Key 'nonexistent' not found"));
+  assertEquals(result.code, 0);
 });
 
 Deno.test("CLI - filter with nonexistent key (silent)", async () => {

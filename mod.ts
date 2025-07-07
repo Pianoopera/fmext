@@ -1,12 +1,12 @@
 #!/usr/bin/env deno run --allow-read
 
 import {
-  parseFile,
-  extractKeyValue,
-  formatOutput,
-  countValues,
   aggregateCounts,
+  countValues,
+  extractKeyValue,
   formatCounts,
+  formatOutput,
+  parseFile,
 } from "./src/parser.ts";
 import type { CLIArgs } from "./src/types.ts";
 
@@ -152,17 +152,21 @@ async function main() {
     }
 
     let hasErrors = false;
-    
+
     // First, apply filters to get the list of files to process
     let filesToProcess = args.files;
-    
+
     if (args.filters.length > 0 || (args.key && args.value)) {
       const filteredFiles: string[] = [];
-      
+
       for (const file of args.files) {
         try {
-          const result = await parseFile(file, { silent: args.silent });
-          
+          const options: { silent?: boolean } = {};
+          if (args.silent !== undefined) {
+            options.silent = args.silent;
+          }
+          const result = await parseFile(file, options);
+
           if (result.hasError && result.errorMessage) {
             if (!args.silent) {
               console.error(`${file}: ${result.errorMessage}`);
@@ -170,33 +174,42 @@ async function main() {
             }
             continue;
           }
-          
+
           if (result.frontMatter === null) {
             if (!args.silent) {
               console.error(`${file}: No front matter found`);
             }
             continue;
           }
-          
+
           let passesAllFilters = true;
-          
+
           // Check --filter conditions (AND logic)
           for (const filter of args.filters) {
-            const extractedValue = extractKeyValue(result.frontMatter, filter.key);
+            const extractedValue = extractKeyValue(
+              result.frontMatter,
+              filter.key,
+            );
             if (!matchesValue(extractedValue, filter.value)) {
               passesAllFilters = false;
               break;
             }
           }
-          
+
           // Check --key --value condition if no --filter is used
-          if (passesAllFilters && args.filters.length === 0 && args.key && args.value) {
-            const extractedValue = extractKeyValue(result.frontMatter, args.key);
+          if (
+            passesAllFilters && args.filters.length === 0 && args.key &&
+            args.value
+          ) {
+            const extractedValue = extractKeyValue(
+              result.frontMatter,
+              args.key,
+            );
             if (!matchesValue(extractedValue, args.value)) {
               passesAllFilters = false;
             }
           }
-          
+
           if (passesAllFilters) {
             filteredFiles.push(file);
           }
@@ -205,7 +218,7 @@ async function main() {
           hasErrors = true;
         }
       }
-      
+
       // If only filtering (--key --value without --count), output matching files
       if (!args.count && args.key && args.value && args.filters.length === 0) {
         for (const file of filteredFiles) {
@@ -216,11 +229,13 @@ async function main() {
         }
         return;
       }
-      
+
       filesToProcess = filteredFiles;
-      
+
       if (args.verbose) {
-        console.error(`\nFiltered ${args.files.length} files down to ${filesToProcess.length} files\n`);
+        console.error(
+          `\nFiltered ${args.files.length} files down to ${filesToProcess.length} files\n`,
+        );
       }
     }
 

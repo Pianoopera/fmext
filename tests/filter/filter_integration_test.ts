@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals } from "jsr:@std/assert";
 import { parseFile } from "../../src/parser.ts";
 import { extractKeyValue } from "../../src/parser.ts";
 
@@ -69,16 +69,16 @@ Deno.test("matchesValue handles null/undefined", () => {
 Deno.test("filter integration - single filter", async () => {
   const testFile = "tests/filter/react-tutorial.md";
   const result = await parseFile(testFile);
-  
+
   if (result.frontMatter) {
     // Test filtering by published: true
     const publishedValue = extractKeyValue(result.frontMatter, "published");
     assertEquals(matchesValue(publishedValue, "true"), true);
-    
+
     // Test filtering by type: tech
     const typeValue = extractKeyValue(result.frontMatter, "type");
     assertEquals(matchesValue(typeValue, "tech"), true);
-    
+
     // Test filtering by array value
     const topicsValue = extractKeyValue(result.frontMatter, "topics");
     assertEquals(matchesValue(topicsValue, "react"), true);
@@ -92,24 +92,26 @@ Deno.test("filter integration - multiple conditions", async () => {
     "tests/filter/react-tutorial.md",
     "tests/filter/vue-guide.md",
     "tests/filter/personal-blog.md",
-    "tests/filter/draft-article.md"
+    "tests/filter/draft-article.md",
   ];
-  
+
   const matchingFiles: string[] = [];
-  
+
   // Filter: published: true AND type: tech
   for (const file of files) {
     const result = await parseFile(file);
     if (result.frontMatter) {
       const publishedValue = extractKeyValue(result.frontMatter, "published");
       const typeValue = extractKeyValue(result.frontMatter, "type");
-      
-      if (matchesValue(publishedValue, "true") && matchesValue(typeValue, "tech")) {
+
+      if (
+        matchesValue(publishedValue, "true") && matchesValue(typeValue, "tech")
+      ) {
         matchingFiles.push(file);
       }
     }
   }
-  
+
   // Only react-tutorial.md should match both conditions
   assertEquals(matchingFiles.length, 1);
   assertEquals(matchingFiles[0], "tests/filter/react-tutorial.md");

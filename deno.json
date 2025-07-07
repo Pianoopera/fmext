@@ -21,11 +21,11 @@
     "exactOptionalPropertyTypes": true
   },
   "fmt": {
-    "include": ["src/", "tests/"],
+    "include": ["src/**/*.ts", "tests/**/*.ts", "mod.ts"],
     "exclude": ["README.md"]
   },
   "lint": {
-    "include": ["src/", "tests/", "mod.ts"],
+    "include": ["src/**/*.ts", "tests/**/*.ts", "mod.ts"],
     "exclude": ["README.md"]
   },
   "test": {
