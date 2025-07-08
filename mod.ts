@@ -10,6 +10,17 @@ import {
 } from "./src/parser.ts";
 import type { CLIArgs } from "./src/types.ts";
 
+async function getVersion(): Promise<string> {
+  try {
+    const packageJsonContent = await Deno.readTextFile("./package.json");
+    const packageJson = JSON.parse(packageJsonContent);
+    return `v${packageJson.version}`;
+  } catch (error) {
+    console.error("Error reading version:", error);
+    return "version unknown";
+  }
+}
+
 export function parseArgs(args: string[]): CLIArgs {
   const result: CLIArgs = {
     files: [],
@@ -17,6 +28,15 @@ export function parseArgs(args: string[]): CLIArgs {
     silent: false,
     help: false,
   };
+
+  // Check for subcommands first
+  if (args.length > 0) {
+    const firstArg = args[0];
+    if (firstArg === "version") {
+      result.version = true;
+      return result;
+    }
+  }
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -70,6 +90,9 @@ fmext - YAML Front Matter Parser
 
 USAGE:
     fmext [OPTIONS] <FILES...>
+
+SUBCOMMANDS:
+    version              Show the version of fmext
 
 OPTIONS:
     -k, --key <KEY>      Extract specific key from front matter (supports dot notation for nested keys)
@@ -142,6 +165,12 @@ async function main() {
 
     if (args.help) {
       showHelp();
+      return;
+    }
+
+    if (args.version) {
+      const version = await getVersion();
+      console.log(version);
       return;
     }
 
