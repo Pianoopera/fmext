@@ -196,11 +196,8 @@ async function main() {
             }
           }
 
-          // Check --key --value condition if no --filter is used
-          if (
-            passesAllFilters && args.filters.length === 0 && args.key &&
-            args.value
-          ) {
+          // Check --key --value condition as additional filter
+          if (passesAllFilters && args.key && args.value) {
             const extractedValue = extractKeyValue(
               result.frontMatter,
               args.key,
@@ -219,8 +216,8 @@ async function main() {
         }
       }
 
-      // If only filtering (--key --value without --count), output matching files
-      if (!args.count && args.key && args.value && args.filters.length === 0) {
+      // If filtering with --key --value (regardless of --filter usage), output matching files
+      if (!args.count && args.key && args.value) {
         for (const file of filteredFiles) {
           console.log(file);
         }

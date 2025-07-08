@@ -299,3 +299,21 @@ Deno.test("CLI - filter with nonexistent key (silent)", async () => {
   assertEquals(result.code, 0);
   assertEquals(result.stdout.trim(), "");
 });
+
+Deno.test("CLI - filter with key value option", async () => {
+  const result = await runCLI([
+    "--filter",
+    "published",
+    "true",
+    "--key",
+    "topics",
+    "--value",
+    "rust",
+    "--silent",
+    "tests/fixtures/valid.md",
+    "tests/fixtures/types.md",
+  ]);
+
+  assertEquals(result.code, 0);
+  assertEquals(result.stdout.trim(), "tests/fixtures/types.md");
+});
