@@ -12,9 +12,7 @@ import type { CLIArgs } from "./src/types.ts";
 
 async function getVersion(): Promise<string> {
   try {
-    const packageJsonPath =
-      new URL("../package.json", import.meta.url).pathname;
-    const packageJsonContent = await Deno.readTextFile(packageJsonPath);
+    const packageJsonContent = await Deno.readTextFile("./package.json");
     const packageJson = JSON.parse(packageJsonContent);
     return `v${packageJson.version}`;
   } catch (error) {
@@ -92,6 +90,9 @@ fmext - YAML Front Matter Parser
 
 USAGE:
     fmext [OPTIONS] <FILES...>
+
+SUBCOMMANDS:
+    version              Show the version of fmext
 
 OPTIONS:
     -k, --key <KEY>      Extract specific key from front matter (supports dot notation for nested keys)
