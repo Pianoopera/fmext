@@ -5,6 +5,9 @@ tags:
   - markdown
   - yaml
   - test
+topics:
+  - react
+  - javascript
 metadata:
   created: 2023-01-01
   version: 1.0
