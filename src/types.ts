@@ -22,6 +22,7 @@ export interface CLIArgs {
   value?: string;
   silent?: boolean;
   help?: boolean;
+  version?: boolean;
   count?: boolean;
   verbose?: boolean;
   filters: FilterCondition[];

@@ -35,6 +35,13 @@ Deno.test("CLI - help option short form", async () => {
   assert(result.stdout.includes("fmext - YAML Front Matter Parser"));
 });
 
+Deno.test("CLI - version subcommand", async () => {
+  const result = await runCLI(["version"]);
+
+  assertEquals(result.code, 0);
+  assert(result.stdout.trim().startsWith("v"));
+});
+
 Deno.test("CLI - no arguments", async () => {
   const result = await runCLI([]);
 
