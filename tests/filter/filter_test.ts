@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { parseArgs } from "../../mod.ts";
+import { parseArgs } from "../../src/parseArgs.ts";
 
 Deno.test("parseArgs handles single --filter option", () => {
   const args = ["--filter", "published", "true", "file.md"];
