@@ -6,8 +6,7 @@
     "fmext": "install.js"
   },
   "scripts": {
-    "postinstall": "node install.js",
-    "prepublishOnly": "mkdir -p dist && npx -c 'echo \"{\\\"version\\\": \\\"$npm_package_version\\\"}\"' > info.json"
+    "postinstall": "node install.js"
   },
   "keywords": [
     "cli",
@@ -40,7 +39,6 @@
     "dist/",
     "install.js",
     "README.md",
-    "LICENSE",
-    "info.json"
+    "LICENSE"
   ]
 }
