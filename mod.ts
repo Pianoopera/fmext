@@ -12,7 +12,8 @@ import type { CLIArgs } from "./src/types.ts";
 
 async function getVersion(): Promise<string> {
   try {
-    const packageJsonContent = await Deno.readTextFile("./package.json");
+    const path = new URL("./package.json", import.meta.url).pathname;
+    const packageJsonContent = await Deno.readTextFile(path);
     const packageJson = JSON.parse(packageJsonContent);
     return `v${packageJson.version}`;
   } catch (error) {
