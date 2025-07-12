@@ -3,7 +3,6 @@ import { parseFile } from "./parser.ts";
 export interface ProcessFileOptions {
   key?: string | undefined;
   value?: string | undefined;
-  silent?: boolean | undefined;
 }
 
 export interface ProcessFileResult {
@@ -17,22 +16,17 @@ export async function processFile(
   options: ProcessFileOptions,
 ): Promise<ProcessFileResult | null> {
   try {
-    const parseOptions: { key?: string; value?: string; silent?: boolean } = {};
+    const parseOptions: { key?: string; value?: string } = {};
     if (options.key !== undefined) {
       parseOptions.key = options.key;
     }
     if (options.value !== undefined) {
       parseOptions.value = options.value;
     }
-    if (options.silent !== undefined) {
-      parseOptions.silent = options.silent;
-    }
-    const result = await parseFile(file, parseOptions);
+
+    const result = await parseFile(file);
 
     if (result.hasError && result.errorMessage) {
-      if (!options.silent) {
-        console.error(`${file}: ${result.errorMessage}`);
-      }
       return {
         hasError: true,
         errorMessage: result.errorMessage,
@@ -41,9 +35,6 @@ export async function processFile(
     }
 
     if (result.frontMatter === null) {
-      if (!options.silent) {
-        console.error(`${file}: No front matter found`);
-      }
       return {
         hasError: true,
         errorMessage: "No front matter found",

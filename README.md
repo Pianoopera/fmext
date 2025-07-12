@@ -9,8 +9,6 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 - 🔍 **Value Filtering**: Filter files by specific key-value pairs with array and string matching
 - 🔐 **Advanced Filtering**: Apply multiple filter conditions with AND logic
 - 📊 **Value Counting**: Count occurrences of values and array elements across files
-- 🔇 **Silent Mode**: Skip files without front matter gracefully
-- 📝 **Verbose Mode**: Show detailed processing information
 - ❌ **Error Handling**: Robust YAML parse error handling and reporting
 - 🔍 **Multiple Files**: Process multiple files at once with glob patterns
 - 📦 **Cross-platform**: Works on Windows, macOS, and Linux
@@ -44,9 +42,7 @@ Description:
 Options:
 
   -h, --help               - Show this help.             
-  -s, --silent             - Silent mode                 
-  -c, --count              - Count mode                  
-  -V, --verbose            - Verbose mode                
+  -c, --count              - Count mode                       
   -k, --key      <key>     - Extract specific key        
   -v, --value    <value>   - Filter by value             
   -f, --filter   <filter>  - Filter by key=value format  

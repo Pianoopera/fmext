@@ -8,7 +8,6 @@ export interface FrontMatterResult {
 export interface ParseOptions {
   key?: string;
   value?: string;
-  silent?: boolean;
   count?: boolean;
 }
 
@@ -20,11 +19,9 @@ export interface FilterCondition {
 export interface CLIArgs {
   key?: string;
   value?: string;
-  silent?: boolean;
   help?: boolean;
   version?: boolean;
   count?: boolean;
-  verbose?: boolean;
   filters: FilterCondition[];
   files: string[];
 }
@@ -48,6 +45,5 @@ export interface CountResult {
 }
 
 export interface CountByType {
-  strings: CountResult;
   arrays: CountResult;
 }

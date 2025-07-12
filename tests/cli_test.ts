@@ -83,26 +83,11 @@ Deno.test("CLI - parse file without front matter", async () => {
   assert(result.stderr.includes("No front matter found"));
 });
 
-Deno.test("CLI - parse file without front matter (silent)", async () => {
-  const result = await runCLI(["--silent", "tests/fixtures/no-frontmatter.md"]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "");
-  assertEquals(result.stderr.trim(), "");
-});
-
 Deno.test("CLI - parse invalid YAML", async () => {
   const result = await runCLI(["tests/fixtures/invalid-yaml.md"]);
 
   assertEquals(result.code, 1);
   assert(result.stderr.includes("YAML parse error"));
-});
-
-Deno.test("CLI - parse invalid YAML (silent)", async () => {
-  const result = await runCLI(["--silent", "tests/fixtures/invalid-yaml.md"]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "");
 });
 
 Deno.test("CLI - parse multiple files", async () => {
@@ -112,8 +97,10 @@ Deno.test("CLI - parse multiple files", async () => {
   ]);
 
   assertEquals(result.code, 0);
-  assert(result.stdout.includes("tests/fixtures/valid.md:"));
-  assert(result.stdout.includes("tests/fixtures/types.md:"));
+  const persed = JSON.parse(result.stdout.trim());
+  assert(persed.length === 2);
+  assert(persed[0].output.title === "Test Document");
+  assert(persed[1].output.string_value === "Hello World");
 });
 
 Deno.test("CLI - nonexistent file", async () => {
@@ -139,18 +126,6 @@ Deno.test("CLI - extract nonexistent key", async () => {
 
   assertEquals(result.code, 1);
   assert(result.stderr.includes("Key 'nonexistent' not found"));
-});
-
-Deno.test("CLI - extract nonexistent key (silent)", async () => {
-  const result = await runCLI([
-    "--silent",
-    "--key",
-    "nonexistent",
-    "tests/fixtures/valid.md",
-  ]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "");
 });
 
 // Tests for --value functionality
@@ -258,7 +233,6 @@ Deno.test("CLI - filter with multiple files", async () => {
     "array_value",
     "--value",
     "item1",
-    "-s",
     "tests/fixtures/valid.md",
     "tests/fixtures/types.md",
   ]);
@@ -279,33 +253,48 @@ Deno.test("CLI - filter with nonexistent key", async () => {
   assertEquals(result.code, 0);
 });
 
-Deno.test("CLI - filter with nonexistent key (silent)", async () => {
-  const result = await runCLI([
-    "--silent",
-    "--key",
-    "nonexistent",
-    "--value",
-    "test",
-    "tests/fixtures/valid.md",
-  ]);
+Deno.test("CLI - count options", async (t) => {
+  await t.step("CLI count - no files", async () => {
+    const result = await runCLI(["--count"]);
 
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "");
-});
+    assertEquals(result.code, 0);
+    assertEquals(result.stdout.trim(), "");
+  });
 
-Deno.test("CLI - filter with key value option", async () => {
-  const result = await runCLI([
-    "--filter",
-    "published=true",
-    "--key",
-    "topics",
-    "--value",
-    "rust",
-    "--silent",
-    "tests/fixtures/valid.md",
-    "tests/fixtures/types.md",
-  ]);
+  await t.step("CLI count - single file", async () => {
+    const result = await runCLI(["--count", "tests/fixtures/count-test-1.md"]);
 
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "tests/fixtures/types.md");
+    assertEquals(result.code, 0);
+
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.length === 1);
+    assertEquals(parsed[0].react, 1);
+  });
+
+  await t.step("CLI count - multiple files", async () => {
+    const result = await runCLI([
+      "--count",
+      "tests/fixtures/count-test-1.md",
+      "tests/fixtures/count-test-2.md",
+    ]);
+
+    assertEquals(result.code, 0);
+    const stdout = result.stdout.trim();
+    const parsed = JSON.parse(stdout);
+    assertEquals(parsed[0].typescript, 2);
+  });
+
+  await t.step("CLI count - with key and value", async () => {
+    const result = await runCLI([
+      "--count",
+      "--key",
+      "tags",
+      "tests/fixtures/count-test-1.md",
+    ]);
+
+    assertEquals(result.code, 0);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.length === 1);
+    assertEquals(parsed[0].typescript, 1);
+  });
 });

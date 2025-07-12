@@ -41,9 +41,7 @@ Description:
 Options:
 
   -h, --help               - Show this help.             
-  -s, --silent             - Silent mode                 
   -c, --count              - Count mode                  
-  -V, --verbose            - Verbose mode                
   -k, --key      <key>     - Extract specific key        
   -v, --value    <value>   - Filter by value             
   -f, --filter   <filter>  - Filter by key=value format  

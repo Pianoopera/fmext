@@ -8,16 +8,13 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
   const result: CLIArgs = {
     files: [],
     filters: [],
-    silent: false,
     help: false,
   };
 
   const command = new Command()
     .name("fmext")
     .description("Front matter extraction tool")
-    .option("-s, --silent", "Silent mode")
     .option("-c, --count", "Count mode")
-    .option("-V, --verbose", "Verbose mode")
     .option("-k, --key <key:string>", "Extract specific key")
     .option("-v, --value <value:string>", "Filter by value")
     .option(
@@ -48,9 +45,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
   try {
     const parsed = await command.parse(args as string[]);
 
-    result.silent = !!parsed.options.silent;
     result.count = !!parsed.options.count;
-    result.verbose = !!parsed.options.verbose;
     result.key = parsed.options.key!;
     result.value = parsed.options.value!;
     result.files = parsed.args || [];
@@ -81,8 +76,6 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     if (result.value && !result.key) {
       throw new Error("--value requires --key to be specified");
     }
-
-    // console.log("Parsed arguments:", result);
 
     return result;
   } catch (error) {
