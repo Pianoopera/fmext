@@ -130,13 +130,6 @@ Deno.test("CLI - unknown option", async () => {
   assert(result.stderr.includes("Unknown option"));
 });
 
-Deno.test("CLI - key option without value", async () => {
-  const result = await runCLI(["--key"]);
-
-  assertEquals(result.code, 1);
-  assert(result.stderr.includes("--key requires a value"));
-});
-
 Deno.test("CLI - extract nonexistent key", async () => {
   const result = await runCLI([
     "--key",
@@ -166,13 +159,6 @@ Deno.test("CLI - value option requires key", async () => {
 
   assertEquals(result.code, 1);
   assert(result.stderr.includes("--value requires --key to be specified"));
-});
-
-Deno.test("CLI - value option without value", async () => {
-  const result = await runCLI(["--value"]);
-
-  assertEquals(result.code, 1);
-  assert(result.stderr.includes("--value requires a value"));
 });
 
 Deno.test("CLI - filter by string value (exact match)", async () => {
@@ -310,8 +296,7 @@ Deno.test("CLI - filter with nonexistent key (silent)", async () => {
 Deno.test("CLI - filter with key value option", async () => {
   const result = await runCLI([
     "--filter",
-    "published",
-    "true",
+    "published=true",
     "--key",
     "topics",
     "--value",

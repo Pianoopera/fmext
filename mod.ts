@@ -45,7 +45,7 @@ export function matchesValue(
 
 async function main() {
   try {
-    const args = parseArgs(Deno.args);
+    const args = await parseArgs(Deno.args);
 
     if (args.help) {
       showHelp();

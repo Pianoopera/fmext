@@ -1,48 +1,45 @@
 import { assertEquals } from "jsr:@std/assert";
 import { parseArgs } from "../../src/parseArgs.ts";
 
-Deno.test("parseArgs handles single --filter option", () => {
-  const args = ["--filter", "published", "true", "file.md"];
-  const result = parseArgs(args);
+Deno.test("parseArgs handles single --filter option", async () => {
+  const args = ["--filter", "published=true", "personal-blog.md"];
+  const result = await parseArgs(args);
 
   assertEquals(result.filters.length, 1);
   assertEquals(result.filters[0].key, "published");
   assertEquals(result.filters[0].value, "true");
-  assertEquals(result.files, ["file.md"]);
+  assertEquals(result.files, ["personal-blog.md"]);
 });
 
-Deno.test("parseArgs handles multiple --filter options", () => {
+Deno.test("parseArgs handles multiple --filter options", async () => {
   const args = [
     "--filter",
-    "published",
-    "true",
+    "published=true",
     "--filter",
-    "type",
-    "tech",
-    "file1.md",
-    "file2.md",
+    "type=tech",
+    "personal-blog.md",
+    "react-tutorial.md",
   ];
-  const result = parseArgs(args);
+  const result = await parseArgs(args);
 
   assertEquals(result.filters.length, 2);
   assertEquals(result.filters[0].key, "published");
   assertEquals(result.filters[0].value, "true");
   assertEquals(result.filters[1].key, "type");
   assertEquals(result.filters[1].value, "tech");
-  assertEquals(result.files, ["file1.md", "file2.md"]);
+  assertEquals(result.files, ["personal-blog.md", "react-tutorial.md"]);
 });
 
-Deno.test("parseArgs handles --filter with --count", () => {
+Deno.test("parseArgs handles --filter with --count", async () => {
   const args = [
     "--filter",
-    "status",
-    "draft",
+    "status=draft",
     "--count",
     "--key",
     "topics",
     "*.md",
   ];
-  const result = parseArgs(args);
+  const result = await parseArgs(args);
 
   assertEquals(result.filters.length, 1);
   assertEquals(result.filters[0].key, "status");
@@ -52,18 +49,18 @@ Deno.test("parseArgs handles --filter with --count", () => {
   assertEquals(result.files, ["*.md"]);
 });
 
-Deno.test("parseArgs throws error when --filter lacks arguments", () => {
+Deno.test("parseArgs throws error when --filter lacks arguments", async () => {
   const args = ["--filter", "published"];
   let error: Error | null = null;
 
   try {
-    parseArgs(args);
+    await parseArgs(args);
   } catch (e) {
     error = e as Error;
   }
 
   assertEquals(
     error?.message,
-    "--filter requires both key and value arguments",
+    "Invalid filter format (expected key=value): published",
   );
 });
