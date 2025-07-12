@@ -82,6 +82,11 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       throw new Error("--value requires --key to be specified");
     }
 
+    // Validate format option
+    if (result.format && !["text", "json"].includes(result.format)) {
+      throw new Error("--format must be either 'text' or 'json'");
+    }
+
     // console.log("Parsed arguments:", result);
 
     return result;

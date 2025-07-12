@@ -1,6 +1,7 @@
 import { parse as parseYaml } from "@std/yaml";
 import type {
   CountByType,
+  CountResult,
   FrontMatterResult,
   ParseOptions,
   ParseResult,
@@ -97,17 +98,13 @@ export async function parseFile(
       };
     }
 
-    let _outputData: unknown = result.data;
-
-    if (options.key && result.data !== null) {
-      _outputData = extractKeyValue(result.data, options.key);
-    }
-
-    return {
+    const data = {
       frontMatter: result.data,
       content: result.content,
       hasError: false,
     };
+
+    return data;
   } catch (error) {
     return {
       frontMatter: null,
@@ -123,13 +120,12 @@ export function countValues(
   targetKey?: string,
 ): CountByType {
   const result: CountByType = {
-    strings: {},
     arrays: {},
   };
 
   function processValue(value: unknown) {
     if (typeof value === "string") {
-      result.strings[value] = (result.strings[value] || 0) + 1;
+      result.arrays[value] = (result.arrays[value] || 0) + 1;
     } else if (Array.isArray(value)) {
       for (const item of value) {
         if (typeof item === "string") {
@@ -141,7 +137,7 @@ export function countValues(
       }
     } else if (typeof value === "number" || typeof value === "boolean") {
       const valueStr = String(value);
-      result.strings[valueStr] = (result.strings[valueStr] || 0) + 1;
+      result.arrays[valueStr] = (result.arrays[valueStr] || 0) + 1;
     }
   }
 
@@ -159,68 +155,29 @@ export function countValues(
   return result;
 }
 
-export function aggregateCounts(counts: CountByType[]): CountByType {
-  const result: CountByType = {
-    strings: {},
-    arrays: {},
-  };
-
+export function aggregateCounts(counts: CountByType[]): CountResult[] {
+  const results: CountResult = {};
   for (const count of counts) {
-    for (const [key, value] of Object.entries(count.strings)) {
-      result.strings[key] = (result.strings[key] || 0) + value;
-    }
     for (const [key, value] of Object.entries(count.arrays)) {
-      result.arrays[key] = (result.arrays[key] || 0) + value;
+      results[key] = (results[key] || 0) + value;
     }
   }
-
-  return result;
+  if (Object.keys(results).length === 0) {
+    return [];
+  }
+  return [results];
 }
 
-export function formatCounts(counts: CountByType): string {
-  const lines: string[] = [];
-
-  if (Object.keys(counts.strings).length > 0) {
-    lines.push("String values:");
-    for (const [key, count] of Object.entries(counts.strings).sort()) {
-      lines.push(`  ${key}: ${count}`);
-    }
-  }
-
-  if (Object.keys(counts.arrays).length > 0) {
-    lines.push("Array elements:");
-    for (const [key, count] of Object.entries(counts.arrays).sort()) {
-      lines.push(`  ${key}: ${count}`);
-    }
-  }
-
-  return lines.join("\n");
+export function formatCountsWithFormat(counts: CountByType): object {
+  return counts;
 }
 
-export function formatOutput(value: unknown): string {
-  if (value === undefined) {
-    return "";
-  }
-
-  if (value === null) {
-    return "null";
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => formatOutput(item)).join(", ");
-  }
-
-  if (typeof value === "object") {
-    return JSON.stringify(value, null, 2);
-  }
-
-  return String(value);
+export function formatOutputWithFormat<T>(
+  value: T,
+  file: string,
+): { file: string; output: T } {
+  return {
+    file,
+    output: value,
+  };
 }

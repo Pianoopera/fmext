@@ -1,4 +1,4 @@
-import { aggregateCounts, countValues, formatCounts } from "./parser.ts";
+import { aggregateCounts, countValues } from "./parser.ts";
 import { processFile } from "./processFiles.ts";
 import type { CLIArgs } from "./types.ts";
 
@@ -34,8 +34,7 @@ export async function processFilesWithCounts(
 
   if (allCounts.length > 0) {
     const aggregatedCounts = aggregateCounts(allCounts);
-    const formattedCounts = formatCounts(aggregatedCounts);
-    console.log(formattedCounts);
+    console.log(JSON.stringify(aggregatedCounts, null, 2));
   }
   return hasErrors;
 }

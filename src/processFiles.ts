@@ -27,6 +27,7 @@ export async function processFile(
     if (options.silent !== undefined) {
       parseOptions.silent = options.silent;
     }
+
     const result = await parseFile(file, parseOptions);
 
     if (result.hasError && result.errorMessage) {

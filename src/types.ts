@@ -25,6 +25,7 @@ export interface CLIArgs {
   version?: boolean;
   count?: boolean;
   verbose?: boolean;
+  format?: OutputFormat;
   filters: FilterCondition[];
   files: string[];
 }
@@ -48,6 +49,7 @@ export interface CountResult {
 }
 
 export interface CountByType {
-  strings: CountResult;
   arrays: CountResult;
 }
+
+export type OutputFormat = "text" | "json";

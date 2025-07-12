@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertObjectMatch } from "jsr:@std/assert";
 import {
   extractKeyValue,
-  formatOutput,
+  formatOutputWithFormat,
   parseFile,
   parseFrontMatter,
 } from "../src/parser.ts";
@@ -173,26 +173,6 @@ Deno.test("parseFile - nonexistent file", async () => {
   assert(result.errorMessage!.includes("Failed to read file"));
 });
 
-Deno.test("formatOutput - various data types", () => {
-  assertEquals(formatOutput(undefined), "");
-  assertEquals(formatOutput(null), "null");
-  assertEquals(formatOutput("string"), "string");
-  assertEquals(formatOutput(42), "42");
-  assertEquals(formatOutput(true), "true");
-  assertEquals(formatOutput(false), "false");
-  assertEquals(formatOutput(["a", "b", "c"]), "a, b, c");
-  assertEquals(formatOutput([1, 2, 3]), "1, 2, 3");
-});
-
-Deno.test("formatOutput - objects", () => {
-  const obj = { key: "value", nested: { prop: "test" } };
-  const result = formatOutput(obj);
-
-  assert(result.includes('"key": "value"'));
-  assert(result.includes('"nested"'));
-  assert(result.includes('"prop": "test"'));
-});
-
 Deno.test("parseFile with key extraction", async () => {
   const result = await parseFile("tests/fixtures/valid.md", { key: "title" });
 
@@ -208,4 +188,30 @@ Deno.test("parseFile with nested key extraction", async () => {
 
   assertEquals(result.hasError, false);
   assert(result.frontMatter !== null);
+});
+
+Deno.test("formatOutputWithFormat", async (t) => {
+  await t.step("json output", () => {
+    const result = formatOutputWithFormat<{
+      metadata: {
+        author: string;
+        settings: { theme: string; version: number };
+      };
+      tags: string[];
+      published: boolean;
+    }>({
+      metadata: {
+        author: "John Doe",
+        settings: {
+          theme: "dark",
+          version: 1.2,
+        },
+      },
+      tags: ["test", "yaml"],
+      published: true,
+    }, "tests/fixtures/valid.md");
+
+    assertEquals(result.output.metadata.author, "John Doe");
+    assertEquals(result.output.metadata.settings.theme, "dark");
+  });
 });

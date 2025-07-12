@@ -68,11 +68,15 @@ async function main() {
     if (args.count) {
       hasErrors = await processFilesWithCounts(filesToProcess, args, hasErrors);
     } else {
-      hasErrors = await processFilesWithFrontMatter(
+      const { results, hasErrors } = await processFilesWithFrontMatter(
         filesToProcess,
         args,
-        hasErrors,
       );
+      if (hasErrors) {
+        console.error("Errors occurred while processing files.");
+        Deno.exit(1);
+      }
+      console.log(JSON.stringify(results, null, 2));
     }
 
     if (hasErrors) {

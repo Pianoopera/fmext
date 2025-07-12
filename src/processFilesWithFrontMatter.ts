@@ -1,11 +1,16 @@
-import { extractKeyValue, formatOutput, parseFile } from "./parser.ts";
+import {
+  extractKeyValue,
+  formatOutputWithFormat,
+  parseFile,
+} from "./parser.ts";
 import type { CLIArgs } from "./types.ts";
 
 export async function processFilesWithFrontMatter(
   filesToProcess: string[],
   args: CLIArgs,
-  hasErrors: boolean,
 ) {
+  const results: unknown[] = [];
+  let hasErrors = false;
   for (const file of filesToProcess) {
     try {
       const options: { key?: string; value?: string; silent?: boolean } = {};
@@ -47,18 +52,12 @@ export async function processFilesWithFrontMatter(
         }
       }
 
-      const formattedOutput = formatOutput(output);
-      if (formattedOutput) {
-        if (filesToProcess.length > 1) {
-          console.log(`${file}: ${formattedOutput}`);
-        } else {
-          console.log(formattedOutput);
-        }
-      }
+      const formattedOutput = formatOutputWithFormat(output, file);
+      results.push(formattedOutput);
     } catch (error) {
       console.error(`${file}: ${error}`);
       hasErrors = true;
     }
   }
-  return hasErrors;
+  return { results, hasErrors };
 }
