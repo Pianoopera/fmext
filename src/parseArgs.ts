@@ -1,5 +1,6 @@
 import { Command } from "@cliffy/command";
 import type { CLIArgs } from "./types.ts";
+import { getVersion } from "./getVersion.ts";
 
 export type DenoArgs = readonly string[];
 
@@ -10,18 +11,6 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     silent: false,
     help: false,
   };
-
-  // Check for subcommands first
-  if (args.length > 0 && args[0] === "version") {
-    result.version = true;
-    return result;
-  }
-
-  // Check for help flags early
-  if (args.includes("--help") || args.includes("-h")) {
-    result.help = true;
-    return result;
-  }
 
   const command = new Command()
     .name("fmext")
@@ -40,6 +29,21 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     )
     .arguments("[files...:string]")
     .noExit();
+
+  command.command("version")
+    .description("Show version")
+    .action(async () => {
+      const version = await getVersion();
+      console.log(version);
+      Deno.exit(0);
+    });
+
+  command.command("help")
+    .description("Show help")
+    .action(() => {
+      command.showHelp();
+      Deno.exit(0);
+    });
 
   try {
     const parsed = await command.parse(args as string[]);

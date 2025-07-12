@@ -1,8 +1,6 @@
 #!/usr/bin/env deno run --allow-read
 
-import { showHelp } from "./src/showHelp.ts";
 import { parseArgs } from "./src/parseArgs.ts";
-import { getVersion } from "./src/getVersion.ts";
 import { processFilesWithFilters } from "./src/processFilesWithFilters.ts";
 import { processFilesWithFrontMatter } from "./src/processFilesWithFrontMatter.ts";
 import { processFilesWithCounts } from "./src/processFilesWithCounts.ts";
@@ -46,23 +44,6 @@ export function matchesValue(
 async function main() {
   try {
     const args = await parseArgs(Deno.args);
-
-    if (args.help) {
-      showHelp();
-      return;
-    }
-
-    if (args.version) {
-      const version = await getVersion();
-      console.log(version);
-      return;
-    }
-
-    if (args.files.length === 0) {
-      console.error("Error: No files specified");
-      showHelp();
-      Deno.exit(1);
-    }
 
     let hasErrors = false;
 

@@ -22,17 +22,18 @@ Deno.test("CLI - help option", async () => {
   const result = await runCLI(["--help"]);
 
   assertEquals(result.code, 0);
-  assert(result.stdout.includes("fmext - YAML Front Matter Parser"));
-  assert(result.stdout.includes("USAGE:"));
-  assert(result.stdout.includes("OPTIONS:"));
-  assert(result.stdout.includes("EXAMPLES:"));
+  assert(result.stdout.includes("Description:"));
+  assert(result.stdout.includes("Options:"));
+  assert(result.stdout.includes("Commands:"));
 });
 
 Deno.test("CLI - help option short form", async () => {
   const result = await runCLI(["-h"]);
 
   assertEquals(result.code, 0);
-  assert(result.stdout.includes("fmext - YAML Front Matter Parser"));
+  assert(result.stdout.includes("Description:"));
+  assert(result.stdout.includes("Options:"));
+  assert(result.stdout.includes("Commands:"));
 });
 
 Deno.test("CLI - version subcommand", async () => {
@@ -45,8 +46,7 @@ Deno.test("CLI - version subcommand", async () => {
 Deno.test("CLI - no arguments", async () => {
   const result = await runCLI([]);
 
-  assertEquals(result.code, 1);
-  assert(result.stderr.includes("No files specified"));
+  assertEquals(result.code, 0);
 });
 
 Deno.test("CLI - parse valid file", async () => {
