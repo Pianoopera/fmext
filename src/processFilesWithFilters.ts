@@ -1,4 +1,4 @@
-import { matchesValue } from "@fmext/fmext";
+import { matchesValue } from "./matchesValue.ts";
 import { extractKeyValue, parseFile } from "./parser.ts";
 import type { CLIArgs } from "./types.ts";
 
