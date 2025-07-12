@@ -11,24 +11,16 @@ export async function processFilesWithFilters(
 
   for (const file of args.files) {
     try {
-      const options: { silent?: boolean } = {};
-      if (args.silent !== undefined) {
-        options.silent = args.silent;
-      }
-      const result = await parseFile(file, options);
+      const result = await parseFile(file);
 
       if (result.hasError && result.errorMessage) {
-        if (!args.silent) {
-          console.error(`${file}: ${result.errorMessage}`);
-          hasErrors = true;
-        }
+        console.error(`${file}: ${result.errorMessage}`);
+        hasErrors = true;
         continue;
       }
 
       if (result.frontMatter === null) {
-        if (!args.silent) {
-          console.error(`${file}: No front matter found`);
-        }
+        console.error(`${file}: No front matter found`);
         continue;
       }
 
@@ -78,12 +70,6 @@ export async function processFilesWithFilters(
   }
 
   filesToProcess = filteredFiles;
-
-  if (args.verbose) {
-    console.error(
-      `\nFiltered ${args.files.length} files down to ${filesToProcess.length} files\n`,
-    );
-  }
 
   return { hasErrors, filesToProcess };
 }

@@ -3,7 +3,6 @@ import type {
   CountByType,
   CountResult,
   FrontMatterResult,
-  ParseOptions,
   ParseResult,
 } from "./types.ts";
 
@@ -75,21 +74,12 @@ export function extractKeyValue(
 
 export async function parseFile(
   filePath: string,
-  options: ParseOptions = {},
 ): Promise<FrontMatterResult> {
   try {
     const content = await Deno.readTextFile(filePath);
     const result = parseFrontMatter(content);
 
     if (!result.success) {
-      if (options.silent) {
-        return {
-          frontMatter: null,
-          content: result.content,
-          hasError: false,
-        };
-      }
-
       return {
         frontMatter: null,
         content: result.content,

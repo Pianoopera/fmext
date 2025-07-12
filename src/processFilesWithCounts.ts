@@ -13,7 +13,6 @@ export async function processFilesWithCounts(
     const options = {
       key: args.key,
       value: args.value,
-      silent: args.silent,
     };
 
     const result = await processFile(file, options);

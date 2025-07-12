@@ -13,17 +13,14 @@ export async function processFilesWithFrontMatter(
   let hasErrors = false;
   for (const file of filesToProcess) {
     try {
-      const options: { key?: string; value?: string; silent?: boolean } = {};
+      const options: { key?: string; value?: string } = {};
       if (args.key !== undefined) {
         options.key = args.key;
       }
       if (args.value !== undefined) {
         options.value = args.value;
       }
-      if (args.silent !== undefined) {
-        options.silent = args.silent;
-      }
-      const result = await parseFile(file, options);
+      const result = await parseFile(file);
 
       if (result.hasError && result.errorMessage) {
         console.error(`${file}: ${result.errorMessage}`);
@@ -32,9 +29,7 @@ export async function processFilesWithFrontMatter(
       }
 
       if (result.frontMatter === null) {
-        if (!args.silent) {
-          console.error(`${file}: No front matter found`);
-        }
+        console.error(`${file}: No front matter found`);
         continue;
       }
 
@@ -44,10 +39,8 @@ export async function processFilesWithFrontMatter(
       if (args.key) {
         output = extractKeyValue(result.frontMatter, args.key);
         if (output === undefined) {
-          if (!args.silent) {
-            console.error(`${file}: Key '${args.key}' not found`);
-            hasErrors = true;
-          }
+          console.error(`${file}: Key '${args.key}' not found`);
+          hasErrors = true;
           continue;
         }
       }

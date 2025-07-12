@@ -83,25 +83,11 @@ Deno.test("CLI - parse file without front matter", async () => {
   assert(result.stderr.includes("No front matter found"));
 });
 
-Deno.test("CLI - parse file without front matter (silent)", async () => {
-  const result = await runCLI(["--silent", "tests/fixtures/no-frontmatter.md"]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "[]");
-});
-
 Deno.test("CLI - parse invalid YAML", async () => {
   const result = await runCLI(["tests/fixtures/invalid-yaml.md"]);
 
   assertEquals(result.code, 1);
   assert(result.stderr.includes("YAML parse error"));
-});
-
-Deno.test("CLI - parse invalid YAML (silent)", async () => {
-  const result = await runCLI(["--silent", "tests/fixtures/invalid-yaml.md"]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "[]");
 });
 
 Deno.test("CLI - parse multiple files", async () => {
@@ -140,18 +126,6 @@ Deno.test("CLI - extract nonexistent key", async () => {
 
   assertEquals(result.code, 1);
   assert(result.stderr.includes("Key 'nonexistent' not found"));
-});
-
-Deno.test("CLI - extract nonexistent key (silent)", async () => {
-  const result = await runCLI([
-    "--silent",
-    "--key",
-    "nonexistent",
-    "tests/fixtures/valid.md",
-  ]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "[]");
 });
 
 // Tests for --value functionality
@@ -259,7 +233,6 @@ Deno.test("CLI - filter with multiple files", async () => {
     "array_value",
     "--value",
     "item1",
-    "-s",
     "tests/fixtures/valid.md",
     "tests/fixtures/types.md",
   ]);
@@ -278,37 +251,6 @@ Deno.test("CLI - filter with nonexistent key", async () => {
   ]);
 
   assertEquals(result.code, 0);
-});
-
-Deno.test("CLI - filter with nonexistent key (silent)", async () => {
-  const result = await runCLI([
-    "--silent",
-    "--key",
-    "nonexistent",
-    "--value",
-    "test",
-    "tests/fixtures/valid.md",
-  ]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "");
-});
-
-Deno.test("CLI - filter with key value option", async () => {
-  const result = await runCLI([
-    "--filter",
-    "published=true",
-    "--key",
-    "topics",
-    "--value",
-    "rust",
-    "--silent",
-    "tests/fixtures/valid.md",
-    "tests/fixtures/types.md",
-  ]);
-
-  assertEquals(result.code, 0);
-  assertEquals(result.stdout.trim(), "tests/fixtures/types.md");
 });
 
 Deno.test("CLI - count options", async (t) => {

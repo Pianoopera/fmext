@@ -139,30 +139,12 @@ Deno.test("parseFile - file without front matter", async () => {
   assertEquals(result.errorMessage, "No front matter found");
 });
 
-Deno.test("parseFile - file without front matter (silent mode)", async () => {
-  const result = await parseFile("tests/fixtures/no-frontmatter.md", {
-    silent: true,
-  });
-
-  assertEquals(result.hasError, false);
-  assertEquals(result.frontMatter, null);
-});
-
 Deno.test("parseFile - invalid YAML", async () => {
   const result = await parseFile("tests/fixtures/invalid-yaml.md");
 
   assertEquals(result.hasError, true);
   assertEquals(result.frontMatter, null);
   assert(result.errorMessage!.includes("YAML parse error"));
-});
-
-Deno.test("parseFile - invalid YAML (silent mode)", async () => {
-  const result = await parseFile("tests/fixtures/invalid-yaml.md", {
-    silent: true,
-  });
-
-  assertEquals(result.hasError, false);
-  assertEquals(result.frontMatter, null);
 });
 
 Deno.test("parseFile - nonexistent file", async () => {
@@ -174,7 +156,7 @@ Deno.test("parseFile - nonexistent file", async () => {
 });
 
 Deno.test("parseFile with key extraction", async () => {
-  const result = await parseFile("tests/fixtures/valid.md", { key: "title" });
+  const result = await parseFile("tests/fixtures/valid.md");
 
   assertEquals(result.hasError, false);
   assert(result.frontMatter !== null);
@@ -182,9 +164,7 @@ Deno.test("parseFile with key extraction", async () => {
 });
 
 Deno.test("parseFile with nested key extraction", async () => {
-  const result = await parseFile("tests/fixtures/valid.md", {
-    key: "metadata.nested.value",
-  });
+  const result = await parseFile("tests/fixtures/valid.md");
 
   assertEquals(result.hasError, false);
   assert(result.frontMatter !== null);
