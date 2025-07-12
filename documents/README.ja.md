@@ -31,244 +31,27 @@ deno compile --allow-read --output fmext mod.ts
 
 ## 使い方
 
-### 基本的な使い方
-
 ```bash
-# 単一ファイルからFront Matterを解析
-fmext document.md
+Usage: fmext [files...]
 
-# 複数ファイルを解析
-fmext *.md
+Description:
 
-# globパターンでファイルを解析
-fmext docs/**/*.md
-```
+  Front matter extraction tool
 
-### 特定のキーを抽出
+Options:
 
-```bash
-# 単純なキーを抽出
-fmext --key title document.md
+  -h, --help               - Show this help.             
+  -s, --silent             - Silent mode                 
+  -c, --count              - Count mode                  
+  -V, --verbose            - Verbose mode                
+  -k, --key      <key>     - Extract specific key        
+  -v, --value    <value>   - Filter by value             
+  -f, --filter   <filter>  - Filter by key=value format  
 
-# ドット記法を使用してネストしたキーを抽出
-fmext --key "metadata.author" document.md
-fmext --key "settings.theme.dark" document.md
-```
+Commands:
 
-### 値のカウント
-
-```bash
-# ファイル間で個別の値と配列要素をカウント
-fmext --count *.md
-
-# 特定のキーからの要素のみをカウント
-fmext --count --key tags *.md
-```
-
-### サイレントモード
-
-```bash
-# Front Matterのないファイルをサイレントでスキップ
-fmext --silent *.md
-
-# キー抽出と組み合わせ
-fmext --silent --key title *.md
-```
-
-### ヘルプ
-
-```bash
-fmext --help
-```
-
-## 例
-
-### 例1: 基本的なFront Matter
-
-**入力ファイル (example.md):**
-```markdown
----
-title: My Document
-author: John Doe
-tags:
-  - markdown
-  - yaml
-published: true
----
-
-# My Document
-
-コンテンツがここに...
-```
-
-**コマンド:**
-```bash
-# すべてのFront Matterを取得
-$ fmext example.md
-{
-  "title": "My Document",
-  "author": "John Doe",
-  "tags": ["markdown", "yaml"],
-  "published": true
-}
-
-# 特定のキーを取得
-$ fmext --key title example.md
-My Document
-
-# 配列値を取得
-$ fmext --key tags example.md
-markdown, yaml
-```
-
-### 例2: ネストしたキー
-
-**入力ファイル (config.md):**
-```markdown
----
-metadata:
-  author: Jane Smith
-  settings:
-    theme: dark
-    version: 1.2
-  social:
-    github: janesmith
-    twitter: "@janesmith"
----
-
-# Configuration
-
-...
-```
-
-**コマンド:**
-```bash
-# ネストした値を抽出
-$ fmext --key "metadata.author" config.md
-Jane Smith
-
-$ fmext --key "metadata.settings.theme" config.md
-dark
-
-$ fmext --key "metadata.social.github" config.md
-janesmith
-```
-
-### 例3: 複数ファイル
-
-```bash
-# 複数ファイルを処理
-$ fmext blog/*.md
-blog/post1.md: {"title": "First Post", "date": "2023-01-01"}
-blog/post2.md: {"title": "Second Post", "date": "2023-01-02"}
-
-# すべての投稿からタイトルを抽出
-$ fmext --key title blog/*.md
-blog/post1.md: First Post
-blog/post2.md: Second Post
-```
-
-### 例4: 値のカウント
-
-**タグを含む入力ファイル:**
-```markdown
-# post1.md
----
-title: First Post
-tags:
-  - javascript
-  - web
-  - tutorial
----
-
-# post2.md
----
-title: Second Post
-tags:
-  - javascript
-  - react
-  - tutorial
----
-```
-
-**コマンド:**
-```bash
-# ファイル間ですべての値をカウント
-$ fmext --count blog/*.md
-String values:
-  First Post: 1
-  Second Post: 1
-Array elements:
-  javascript: 2
-  react: 1
-  tutorial: 2
-  web: 1
-
-# タグのみをカウント
-$ fmext --count --key tags blog/*.md
-Array elements:
-  javascript: 2
-  react: 1
-  tutorial: 2
-  web: 1
-```
-
-## CLIオプション
-
-| オプション | 短縮 | 説明 |
-|-----------|------|------|
-| `--key <KEY>` | `-k` | 特定のキーを抽出（ネストしたキーのドット記法をサポート） |
-| `--count` | `-c` | ファイル間で個別の値と配列要素をカウント |
-| `--silent` | `-s` | Front Matterのないファイルをサイレントでスキップ |
-| `--help` | `-h` | ヘルプメッセージを表示 |
-
-## サポートされるYAML機能
-
-- 文字列、数値、真偽値、null値
-- 配列とオブジェクト
-- ネストした構造
-- 複数行文字列
-- YAMLコメント（出力では無視される）
-
-## エラーハンドリング
-
-fmextは様々なエラー条件を適切に処理します：
-
-- **Front Matterなし**: Front Matterの欠如を報告（`--silent`でない場合）
-- **無効なYAML**: 詳細なYAML構文エラーを報告
-- **ファイルが見つからない**: ファイルが見つからないエラーを報告
-- **権限エラー**: ファイルアクセスの問題を報告
-- **キーが見つからない**: 要求されたキーが存在しない場合を報告
-
-## 開発
-
-### 前提条件
-
-- [Deno](https://deno.land/) 1.30以降
-
-### セットアップ
-
-```bash
-git clone https://github.com/Pianoopera/fmext.git
-cd fmext
-```
-
-### テストの実行
-
-```bash
-deno test --allow-read
-```
-
-### ビルド
-
-```bash
-deno task build
-```
-
-### 開発サーバー
-
-```bash
-deno task dev [args...]
+  version  - Show version
+  help     - Show help   
 ```
 
 ### Release Flow
