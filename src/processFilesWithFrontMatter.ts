@@ -1,3 +1,6 @@
+import { convertToFormattedOutput } from "./convertToFormattedOutput.ts";
+import { filterFrontMatter } from "./filterFrontMatter.ts";
+import { matchesValue } from "./matchesValue.ts";
 import {
   extractKeyValue,
   formatOutputWithFormat,
@@ -23,34 +26,45 @@ export async function processFilesWithFrontMatter(
       const result = await parseFile(file);
 
       if (result.hasError && result.errorMessage) {
-        console.error(`${file}: ${result.errorMessage}`);
         hasErrors = true;
         continue;
       }
 
       if (result.frontMatter === null) {
-        console.error(`${file}: No front matter found`);
         continue;
       }
 
-      // Skip the filtering mode in this section as files are already filtered
+      if (!filterFrontMatter(result.frontMatter, args)) {
+        continue;
+      }
+
       let output: unknown = result.frontMatter;
 
       if (args.key) {
         output = extractKeyValue(result.frontMatter, args.key);
+        if (args.value) {
+          if (!matchesValue(output, args.value)) {
+            continue;
+          }
+        }
         if (output === undefined) {
-          console.error(`${file}: Key '${args.key}' not found`);
           hasErrors = true;
           continue;
+        }
+
+        const formattedOutput = convertToFormattedOutput(output);
+        output = formattedOutput;
+        if (formattedOutput.length !== 0) {
+          hasErrors = false;
         }
       }
 
       const formattedOutput = formatOutputWithFormat(output, file);
       results.push(formattedOutput);
-    } catch (error) {
-      console.error(`${file}: ${error}`);
+    } catch (_error) {
       hasErrors = true;
     }
   }
+
   return { results, hasErrors };
 }

@@ -8,7 +8,7 @@ export interface ProcessFileOptions {
 export interface ProcessFileResult {
   hasError: boolean;
   errorMessage?: string;
-  frontMatter: unknown;
+  frontMatter: Record<string, unknown> | null;
 }
 
 export async function processFile(
