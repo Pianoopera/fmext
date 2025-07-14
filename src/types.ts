@@ -47,3 +47,11 @@ export interface CountResult {
 export interface CountByType {
   arrays: CountResult;
 }
+
+export type CLIResult = {
+  file: string;
+  output: {
+    key: string;
+    value: number;
+  }[];
+};

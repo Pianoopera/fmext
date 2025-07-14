@@ -63,16 +63,24 @@ export async function processFilesWithCounts(
       result.frontMatter as Record<string, unknown>,
       args.key,
     );
-
     allCounts.push(counts);
   }
 
-  // if (allCounts.length > 0) {
-  //   const aggregatedCounts = aggregateCounts(allCounts);
-  //   console.log(JSON.stringify(aggregatedCounts, null, 2));
-  // }
+  const aggregated = aggregateCounts(allCounts);
+
+  const formattedOutput = aggregated.map((count) => {
+    return Object.entries(count).map(([key, value]) => ({
+      key,
+      value,
+    }));
+  });
+
+  const result = {
+    output: formattedOutput[0],
+  };
+
   return {
     hasErrors,
-    aggregatedCounts: allCounts.length > 0 ? aggregateCounts(allCounts) : [],
+    aggregatedCounts: allCounts.length > 0 ? result : [],
   };
 }

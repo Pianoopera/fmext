@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert";
+import type { CLIResult } from "../src/types.ts";
 
 async function runCLI(
   args: string[],
@@ -23,6 +24,20 @@ function parsedOutput(output: string): {
   output: { value: string }[];
 }[] {
   return JSON.parse(output.trim());
+}
+
+function parsedOutputWithCount(output: string): {
+  file: string;
+  output: { key: string; value: number }[];
+} {
+  return JSON.parse(output.trim());
+}
+
+function targetKeyValue(
+  parsed: CLIResult,
+  key: string,
+): { key: string; value: number }[] {
+  return parsed.output.filter((o) => o.key === key);
 }
 
 Deno.test("CLI - help option", async () => {
@@ -290,9 +305,12 @@ Deno.test("CLI - count options", async (t) => {
 
     assertEquals(result.code, 0);
 
-    const parsed = JSON.parse(result.stdout.trim());
-    assert(parsed.length === 1);
-    assertEquals(parsed[0].react, 1);
+    const parsed = parsedOutputWithCount(result.stdout);
+    assert(parsed.output.length > 1);
+
+    const reactCount = targetKeyValue(parsed, "react");
+    assertEquals(reactCount[0].key, "react");
+    assertEquals(reactCount[0].value, 1);
   });
 
   await t.step("CLI count - multiple files", async () => {
@@ -303,9 +321,13 @@ Deno.test("CLI - count options", async (t) => {
     ]);
 
     assertEquals(result.code, 0);
-    const stdout = result.stdout.trim();
-    const parsed = JSON.parse(stdout);
-    assertEquals(parsed[0].typescript, 2);
+    const parsed = parsedOutputWithCount(result.stdout);
+    assert(parsed.output.length > 1);
+
+    const typescriptCount = targetKeyValue(parsed, "typescript");
+
+    assertEquals(typescriptCount[0].key, "typescript");
+    assertEquals(typescriptCount[0].value, 2);
   });
 
   await t.step("CLI count - with key and value", async () => {
@@ -317,9 +339,11 @@ Deno.test("CLI - count options", async (t) => {
     ]);
 
     assertEquals(result.code, 0);
-    const parsed = JSON.parse(result.stdout.trim());
-    assert(parsed.length === 1);
-    assertEquals(parsed[0].typescript, 1);
+    const parsed = parsedOutputWithCount(result.stdout);
+    assert(parsed.output.length > 1);
+    const reactCount = targetKeyValue(parsed, "react");
+    assertEquals(reactCount[0].key, "react");
+    assertEquals(reactCount[0].value, 1);
   });
 });
 
@@ -460,9 +484,11 @@ Deno.test("CLI All opeions", async (t) => {
     ]);
 
     assertEquals(result.code, 0);
-    const parsed = JSON.parse(result.stdout.trim());
-    assert(parsed.length === 1);
-    assertEquals(parsed[0].react, 1);
+    const parsed = parsedOutputWithCount(result.stdout);
+    assert(parsed.output.length > 0);
+    const reactCount = targetKeyValue(parsed, "react");
+    assertEquals(reactCount[0].key, "react");
+    assertEquals(reactCount[0].value, 1);
   });
 
   await t.step("CLI - all options combined with multiple files", async () => {
@@ -479,9 +505,11 @@ Deno.test("CLI All opeions", async (t) => {
     ]);
 
     assertEquals(result.code, 0);
-    const parsed = JSON.parse(result.stdout.trim());
-    assert(parsed.length === 1);
-    assertEquals(parsed[0].react, 1);
+    const parsed = parsedOutputWithCount(result.stdout);
+    assert(parsed.output.length > 0);
+    const reactCount = targetKeyValue(parsed, "react");
+    assertEquals(reactCount[0].key, "react");
+    assertEquals(reactCount[0].value, 1);
   });
 
   await t.step("CLI - all options combined with no match", async () => {
