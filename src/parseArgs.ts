@@ -42,6 +42,11 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       Deno.exit(0);
     });
 
+  if (args.includes("-h") || args.includes("--help")) {
+    command.showHelp();
+    Deno.exit(0);
+  }
+
   try {
     const parsed = await command.parse(args as string[]);
 
