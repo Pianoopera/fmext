@@ -49,9 +49,9 @@ export interface CountByType {
 }
 
 export type CLIResult = {
-  file: string;
+  file?: string;
   output: {
     key: string;
     value: number;
-  }[];
+  }[] | unknown;
 };

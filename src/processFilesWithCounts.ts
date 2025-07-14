@@ -3,14 +3,18 @@ import { filterFrontMatter } from "./filterFrontMatter.ts";
 import { matchesValue } from "./matchesValue.ts";
 import { aggregateCounts, countValues, extractKeyValue } from "./parser.ts";
 import { processFile } from "./processFiles.ts";
-import type { CLIArgs } from "./types.ts";
+import type { CLIArgs, CLIResult } from "./types.ts";
 
 export async function processFilesWithCounts(
   filesToProcess: string[],
   args: CLIArgs,
-) {
+): Promise<CLIResult> {
+  const results: CLIResult = {
+    file: filesToProcess[0],
+    output: [],
+  };
+
   const allCounts = [];
-  let hasErrors = false;
 
   for (const file of filesToProcess) {
     const options = {
@@ -21,14 +25,10 @@ export async function processFilesWithCounts(
     const result = await processFile(file, options);
 
     if (result === null || result.hasError) {
-      if (result?.hasError) {
-        hasErrors = true;
-      }
       continue;
     }
 
     if (result.hasError && result.errorMessage) {
-      hasErrors = true;
       continue;
     }
     if (result.frontMatter === null) {
@@ -48,15 +48,11 @@ export async function processFilesWithCounts(
         }
       }
       if (output === undefined) {
-        hasErrors = true;
         continue;
       }
 
       const formattedOutput = convertToFormattedOutput(output);
       output = formattedOutput;
-      if (formattedOutput.length !== 0) {
-        hasErrors = false;
-      }
     }
 
     const counts = countValues(
@@ -74,13 +70,6 @@ export async function processFilesWithCounts(
       value,
     }));
   });
-
-  const result = {
-    output: formattedOutput[0],
-  };
-
-  return {
-    hasErrors,
-    aggregatedCounts: allCounts.length > 0 ? result : [],
-  };
+  results.output = formattedOutput[0];
+  return results;
 }

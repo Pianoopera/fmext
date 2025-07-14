@@ -3,6 +3,7 @@
 import { parseArgs } from "./src/parseArgs.ts";
 import { processFilesWithFrontMatter } from "./src/processFilesWithFrontMatter.ts";
 import { processFilesWithCounts } from "./src/processFilesWithCounts.ts";
+import type { CLIResult } from "./src/types.ts";
 
 async function main() {
   try {
@@ -11,27 +12,32 @@ async function main() {
     const filesToProcess = args.files;
 
     if (args.count) {
-      const { hasErrors, aggregatedCounts } = await processFilesWithCounts(
+      const result: CLIResult = {
+        output: [],
+      };
+      const { output } = await processFilesWithCounts(
         filesToProcess,
         args,
       );
-
-      if (hasErrors) {
-        console.log([]);
-        Deno.exit(0);
-      }
-      console.log(JSON.stringify(aggregatedCounts, null, 2));
+      result.output = output;
+      console.log(JSON.stringify(result, null, 2));
     } else {
-      const { results, hasErrors } = await processFilesWithFrontMatter(
+      const result: CLIResult[] = [];
+      const cliResult = await processFilesWithFrontMatter(
         filesToProcess,
         args,
       );
-      if (hasErrors) {
-        console.log([]);
-        Deno.exit(0);
-      }
-      console.log(JSON.stringify(results, null, 2));
+      cliResult.forEach((res) => {
+        if (res.output && res.file) {
+          result.push({
+            file: res.file,
+            output: res.output,
+          });
+        }
+      });
+      console.log(JSON.stringify(result, null, 2));
     }
+    Deno.exit(0);
   } catch (error) {
     console.error(`Error: ${error}`);
     Deno.exit(1);

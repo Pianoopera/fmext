@@ -37,6 +37,9 @@ function targetKeyValue(
   parsed: CLIResult,
   key: string,
 ): { key: string; value: number }[] {
+  if (!parsed.output || !Array.isArray(parsed.output)) {
+    return [];
+  }
   return parsed.output.filter((o) => o.key === key);
 }
 
@@ -297,7 +300,7 @@ Deno.test("CLI - count options", async (t) => {
     const result = await runCLI(["--count"]);
 
     assertEquals(result.code, 0);
-    assertEquals(result.stdout.trim(), "[]");
+    assertEquals(result.stdout.trim(), "{}");
   });
 
   await t.step("CLI count - single file", async () => {
@@ -526,6 +529,6 @@ Deno.test("CLI All opeions", async (t) => {
 
     assertEquals(result.code, 0);
     const parsed = JSON.parse(result.stdout.trim());
-    assert(parsed.length === 0);
+    assert(Object.keys(parsed).length === 0);
   });
 });

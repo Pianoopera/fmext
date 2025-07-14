@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.13";
+import { assertEquals } from "jsr:@std/assert@^1.0.13";
 import { processFilesWithFrontMatter } from "../../src/processFilesWithFrontMatter.ts";
 
 Deno.test("processFilesWithFrontMatter TEST", async (t) => {
@@ -12,8 +12,7 @@ Deno.test("processFilesWithFrontMatter TEST", async (t) => {
         files: [],
       },
     );
-    assertEquals(sut.results.length, 0);
-    assert(!sut.hasErrors);
+    assertEquals(sut.length, 0);
   });
   await t.step("CLI - filter by key and value (match)", async () => {
     const sut = await processFilesWithFrontMatter(
@@ -25,12 +24,7 @@ Deno.test("processFilesWithFrontMatter TEST", async (t) => {
         files: [],
       },
     );
-    const { results } = sut;
-    assertEquals(results.length, 1);
-    assert(!sut.hasErrors);
-    assertEquals(
-      (results[0] as { file: string })["file"],
-      "tests/fixtures/valid.md",
-    );
+    assertEquals(sut.length, 1);
+    assertEquals(sut[0].file, "tests/fixtures/valid.md");
   });
 });

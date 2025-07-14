@@ -6,14 +6,13 @@ import {
   formatOutputWithFormat,
   parseFile,
 } from "./parser.ts";
-import type { CLIArgs } from "./types.ts";
+import type { CLIArgs, CLIResult } from "./types.ts";
 
 export async function processFilesWithFrontMatter(
   filesToProcess: string[],
   args: CLIArgs,
-) {
-  const results: unknown[] = [];
-  let hasErrors = false;
+): Promise<CLIResult[]> {
+  const results: CLIResult[] = [];
   for (const file of filesToProcess) {
     try {
       const options: { key?: string; value?: string } = {};
@@ -26,7 +25,6 @@ export async function processFilesWithFrontMatter(
       const result = await parseFile(file);
 
       if (result.hasError && result.errorMessage) {
-        hasErrors = true;
         continue;
       }
 
@@ -48,23 +46,21 @@ export async function processFilesWithFrontMatter(
           }
         }
         if (output === undefined) {
-          hasErrors = true;
           continue;
         }
 
         const formattedOutput = convertToFormattedOutput(output);
         output = formattedOutput;
-        if (formattedOutput.length !== 0) {
-          hasErrors = false;
-        }
       }
 
       const formattedOutput = formatOutputWithFormat(output, file);
-      results.push(formattedOutput);
+      results.push({
+        file: formattedOutput.file,
+        output: formattedOutput.output,
+      });
     } catch (_error) {
-      hasErrors = true;
+      continue;
     }
   }
-
-  return { results, hasErrors };
+  return results;
 }
