@@ -4,10 +4,10 @@ import type { CLIArgs } from "./types.ts";
 
 export async function processFilesWithFilters(
   args: CLIArgs,
-  hasErrors: boolean,
   filesToProcess: string[],
 ) {
   const filteredFiles: string[] = [];
+  let hasErrors = false;
 
   for (const file of args.files) {
     try {

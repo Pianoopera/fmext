@@ -1,16 +1,18 @@
+import { convertToFormattedOutput } from "./convertToFormattedOutput.ts";
+import { filterFrontMatter } from "./filterFrontMatter.ts";
+import { matchesValue } from "./matchesValue.ts";
 import {
   extractKeyValue,
   formatOutputWithFormat,
   parseFile,
 } from "./parser.ts";
-import type { CLIArgs } from "./types.ts";
+import type { CLIArgs, CLIResult } from "./types.ts";
 
 export async function processFilesWithFrontMatter(
   filesToProcess: string[],
   args: CLIArgs,
-) {
-  const results: unknown[] = [];
-  let hasErrors = false;
+): Promise<CLIResult[]> {
+  const results: CLIResult[] = [];
   for (const file of filesToProcess) {
     try {
       const options: { key?: string; value?: string } = {};
@@ -23,34 +25,42 @@ export async function processFilesWithFrontMatter(
       const result = await parseFile(file);
 
       if (result.hasError && result.errorMessage) {
-        console.error(`${file}: ${result.errorMessage}`);
-        hasErrors = true;
         continue;
       }
 
       if (result.frontMatter === null) {
-        console.error(`${file}: No front matter found`);
         continue;
       }
 
-      // Skip the filtering mode in this section as files are already filtered
+      if (!filterFrontMatter(result.frontMatter, args)) {
+        continue;
+      }
+
       let output: unknown = result.frontMatter;
 
       if (args.key) {
         output = extractKeyValue(result.frontMatter, args.key);
+        if (args.value) {
+          if (!matchesValue(output, args.value)) {
+            continue;
+          }
+        }
         if (output === undefined) {
-          console.error(`${file}: Key '${args.key}' not found`);
-          hasErrors = true;
           continue;
         }
+
+        const formattedOutput = convertToFormattedOutput(output);
+        output = formattedOutput;
       }
 
       const formattedOutput = formatOutputWithFormat(output, file);
-      results.push(formattedOutput);
-    } catch (error) {
-      console.error(`${file}: ${error}`);
-      hasErrors = true;
+      results.push({
+        file: formattedOutput.file,
+        output: formattedOutput.output,
+      });
+    } catch (_error) {
+      continue;
     }
   }
-  return { results, hasErrors };
+  return results;
 }
