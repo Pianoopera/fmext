@@ -44,11 +44,50 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
   command.command("alias")
     .description("Manage command aliases")
     .option("-l, --list", "List all aliases")
-    .option("-s, --set <alias:value>", "Set new alias")
+    .option(
+      "-s, --set <alias:string> <optionValue:string>",
+      "Set new alias `alias set keyTags -k:tags,-v:react`",
+    )
     .option("-r, --remove <name:string>", "Remove alias")
-    .action((option) => {
-      if (Object.keys(option).length === 0) {
+    .action((options) => {
+      const showHelp = () => {
         command.getCommand("alias")?.showHelp();
+        Deno.exit(0);
+      };
+      if (Object.keys(options).length === 0) {
+        showHelp();
+      }
+
+      function validateOptionValue(value: string): boolean {
+        const validOptions = ["-k", "-v", "-f"];
+        const parts = value.split(",");
+
+        // -k:tags,-v:react のような形式で来るため左辺の部分をチェック
+        let isValid = false;
+
+        for (const part of parts) {
+          const [key] = part.split(":");
+          if (!validOptions.includes(key)) {
+            isValid = true;
+          }
+        }
+        return isValid;
+      }
+
+      if (options.set) {
+        if (options.set.length < 2) {
+          showHelp();
+        }
+        const keyName = options.set[0];
+        const optionsValue = options.set[1];
+
+        if (validateOptionValue(optionsValue)) showHelp();
+        const setRes = {
+          aliasName: keyName,
+          options: optionsValue,
+          runCommand: `fmext alias run ${keyName}`,
+        };
+        console.log(JSON.stringify(setRes, null, 2));
         Deno.exit(0);
       }
     });
