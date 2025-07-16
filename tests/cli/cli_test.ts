@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert";
-import type { CLIResult } from "../src/types.ts";
+import type { CLIResult } from "../../src/types.ts";
 
-async function runCLI(
+export async function runCLI(
   args: string[],
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   const cmd = new Deno.Command(Deno.execPath(), {
@@ -438,26 +438,6 @@ Deno.test("CLI filter options", async (t) => {
       assert(parsed.length === 0);
     },
   );
-});
-
-Deno.test("CLI - alias subcommand", async (t) => {
-  await t.step("CLI - alias subcommand with no arguments", async () => {
-    const result = await runCLI(["alias"]);
-
-    assertEquals(result.code, 0);
-    assert(result.stdout.includes("Description:"));
-    assert(result.stdout.includes("Options:"));
-  });
-
-  await t.step("CLI - alias subcommand with help option", async () => {
-    const result = await runCLI(["alias", "--help"]);
-
-    assertEquals(result.code, 0);
-
-    assert(result.stdout.includes("fmext alias"));
-    assert(result.stdout.includes("Description:"));
-    assert(result.stdout.includes("Options:"));
-  });
 });
 
 Deno.test("CLI All opeions", async (t) => {
