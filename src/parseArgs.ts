@@ -24,8 +24,14 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         collect: true,
       },
     )
-    .arguments("[files...:string]")
-    .noExit();
+    .arguments("[files...:string]");
+
+  command.command("help")
+    .description("Show help")
+    .action(() => {
+      command.showHelp();
+      Deno.exit(0);
+    });
 
   command.command("version")
     .description("Show version")
@@ -35,17 +41,17 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       Deno.exit(0);
     });
 
-  command.command("help")
-    .description("Show help")
-    .action(() => {
-      command.showHelp();
-      Deno.exit(0);
+  command.command("alias")
+    .description("Manage command aliases")
+    .option("-l, --list", "List all aliases")
+    .option("-s, --set <alias:value>", "Set new alias")
+    .option("-r, --remove <name:string>", "Remove alias")
+    .action((option) => {
+      if (Object.keys(option).length === 0) {
+        command.getCommand("alias")?.showHelp();
+        Deno.exit(0);
+      }
     });
-
-  if (args.includes("-h") || args.includes("--help")) {
-    command.showHelp();
-    Deno.exit(0);
-  }
 
   try {
     const parsed = await command.parse(args as string[]);

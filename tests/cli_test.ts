@@ -138,7 +138,9 @@ Deno.test("CLI - nonexistent file", async () => {
 Deno.test("CLI - unknown option", async () => {
   const result = await runCLI(["--unknown"]);
 
-  assertEquals(result.code, 1);
+  assertEquals(result.code, 2);
+  assert(result.stdout.includes("Description:"));
+  assert(result.stdout.includes("Options:"));
   assert(result.stderr.includes("Unknown option"));
 });
 
@@ -436,6 +438,26 @@ Deno.test("CLI filter options", async (t) => {
       assert(parsed.length === 0);
     },
   );
+});
+
+Deno.test("CLI - alias subcommand", async (t) => {
+  await t.step("CLI - alias subcommand with no arguments", async () => {
+    const result = await runCLI(["alias"]);
+
+    assertEquals(result.code, 0);
+    assert(result.stdout.includes("Description:"));
+    assert(result.stdout.includes("Options:"));
+  });
+
+  await t.step("CLI - alias subcommand with help option", async () => {
+    const result = await runCLI(["alias", "--help"]);
+
+    assertEquals(result.code, 0);
+
+    assert(result.stdout.includes("fmext alias"));
+    assert(result.stdout.includes("Description:"));
+    assert(result.stdout.includes("Options:"));
+  });
 });
 
 Deno.test("CLI All opeions", async (t) => {
