@@ -53,4 +53,37 @@ Deno.test("CLI - alias subcommand set", async (t) => {
     assert(result.stdout.includes("Description:"));
     assert(result.stdout.includes("Options:"));
   });
+
+  await t.step("CLI - alias subcommand set with no arguments", async () => {
+    const result = await runCLI(["alias", "-s"]);
+
+    assertEquals(result.code, 2);
+    assert(result.stdout.includes("fmext alias"));
+    assert(result.stdout.includes("Description:"));
+    assert(result.stdout.includes("Options:"));
+  });
+
+  await t.step("CLI - alias subcommand set with invalid option value", async () => {
+    const result = await runCLI(["alias", "-s", "keyTags", "-k:tags,-x:invalid"]);
+
+    assertEquals(result.code, 0);
+    assert(result.stdout.includes("fmext alias"));
+    assert(result.stdout.includes("Description:"));
+    assert(result.stdout.includes("Options:"));
+  });
+
+  await t.step("CLI - alias subcommand set with multiple options", async () => {
+    const result = await runCLI([
+      "alias",
+      "-s",
+      "keyTags",
+      "-k:tags,-v:react",
+    ]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutput(result.stdout);
+    assertEquals(output.aliasName, "keyTags");
+    assertEquals(output.options, "-k:tags,-v:react");
+    assertEquals(output.runCommand, "fmext alias run keyTags");
+  });
 });

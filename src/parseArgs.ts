@@ -59,7 +59,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       }
 
       function validateOptionValue(value: string): boolean {
-        const validOptions = ["-k", "-v", "-f"];
+        const validOptions = ["-k", "-v", "-f", "--key", "--value", "--filter"];
         const parts = value.split(",");
 
         // -k:tags,-v:react のような形式で来るため左辺の部分をチェック
