@@ -85,13 +85,13 @@ jobs:
           deno compile --allow-read --target x86_64-unknown-linux-gnu --output dist/fmext-linux-x64 mod.ts
           
           echo "Building macOS x64..."
-          deno compile --allow-read --target x86_64-apple-darwin --output dist/fmext-macos-x64 mod.ts
+          deno compile --unstable-kv -R -W --allow-env=HOME,USERPROFILE --target x86_64-apple-darwin --output dist/fmext-macos-x64 mod.ts
           
           echo "Building macOS ARM64..."
-          deno compile --allow-read --target aarch64-apple-darwin --output dist/fmext-macos-arm64 mod.ts
+          deno compile --unstable-kv -R -W --allow-env=HOME,USERPROFILE --target aarch64-apple-darwin --output dist/fmext-macos-arm64 mod.ts
           
           echo "Building Windows x64..."
-          deno compile --allow-read --target x86_64-pc-windows-msvc --output dist/fmext-windows-x64.exe mod.ts
+          deno compile --unstable-kv -R -W --allow-env=HOME,USERPROFILE --target x86_64-pc-windows-msvc --output dist/fmext-windows-x64.exe mod.ts
           
           # Set execute permissions
           chmod +x dist/fmext-linux-x64

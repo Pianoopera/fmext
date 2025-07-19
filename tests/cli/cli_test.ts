@@ -1,11 +1,21 @@
 import { assert, assertEquals } from "jsr:@std/assert";
-import type { CLIResult } from "../src/types.ts";
+import type { CLIResult } from "../../src/types.ts";
+import process from "node:process";
 
-async function runCLI(
+export async function runCLI(
   args: string[],
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   const cmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-read", "./mod.ts", ...args],
+    args: [
+      "run",
+      "--unstable-kv",
+      "-R",
+      "-W",
+      "--allow-read",
+      "--allow-env=HOME,USERPROFILE",
+      "./mod.ts",
+      ...args,
+    ],
     stdout: "piped",
     stderr: "piped",
   });
@@ -17,6 +27,18 @@ async function runCLI(
     stderr: new TextDecoder().decode(stderr),
     code,
   };
+}
+
+export async function deleteAllAliases() {
+  const HOME = process.env.HOME || process.env.USERPROFILE;
+  const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
+  const entries = kv.list({ prefix: [] });
+
+  for await (const entry of entries) {
+    await kv.delete(entry.key);
+  }
+
+  kv.close();
 }
 
 function parsedOutput(output: string): {
@@ -138,7 +160,9 @@ Deno.test("CLI - nonexistent file", async () => {
 Deno.test("CLI - unknown option", async () => {
   const result = await runCLI(["--unknown"]);
 
-  assertEquals(result.code, 1);
+  assertEquals(result.code, 2);
+  assert(result.stdout.includes("Description:"));
+  assert(result.stdout.includes("Options:"));
   assert(result.stderr.includes("Unknown option"));
 });
 

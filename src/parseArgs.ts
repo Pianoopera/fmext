@@ -1,6 +1,8 @@
 import { Command } from "@cliffy/command";
-import type { CLIArgs } from "./types.ts";
+import type { Aliases, CLIArgs } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
+import { validateOptionValue } from "./aliasLogic.ts";
+import process from "node:process";
 
 export type DenoArgs = readonly string[];
 
@@ -10,6 +12,8 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     filters: [],
     help: false,
   };
+
+  const HOME = process.env.HOME || process.env.USERPROFILE;
 
   const command = new Command()
     .name("fmext")
@@ -24,8 +28,14 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         collect: true,
       },
     )
-    .arguments("[files...:string]")
-    .noExit();
+    .arguments("[files...:string]");
+
+  command.command("help")
+    .description("Show help")
+    .action(() => {
+      command.showHelp();
+      Deno.exit(0);
+    });
 
   command.command("version")
     .description("Show version")
@@ -35,17 +45,64 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       Deno.exit(0);
     });
 
-  command.command("help")
-    .description("Show help")
-    .action(() => {
-      command.showHelp();
-      Deno.exit(0);
-    });
+  command.command("alias")
+    .description("Manage command aliases")
+    .option("-l, --list", "List all aliases")
+    .option(
+      "-s, --set <alias:string> <optionValue:string>",
+      "Set new alias `alias set keyTags -k:tags,-v:react`",
+    )
+    .option("-r, --remove <name:string>", "Remove alias")
+    .action(async (options) => {
+      const showHelp = () => {
+        command.getCommand("alias")?.showHelp();
+        Deno.exit(0);
+      };
+      if (Object.keys(options).length === 0) {
+        showHelp();
+      }
 
-  if (args.includes("-h") || args.includes("--help")) {
-    command.showHelp();
-    Deno.exit(0);
-  }
+      const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
+
+      if (options.list) {
+        const aliases: Aliases[] = [];
+        try {
+          const aliasEntries = kv.list<Aliases>({ prefix: ["aliases"] });
+
+          if (aliasEntries) {
+            for await (const entry of aliasEntries) {
+              aliases.push(entry.value);
+            }
+          }
+        } finally {
+          kv.close();
+          console.log(JSON.stringify(aliases, null, 2));
+          Deno.exit(0);
+        }
+      }
+
+      if (options.set) {
+        if (options.set.length < 2) {
+          showHelp();
+        }
+        const keyName = options.set[0];
+        const optionsValue = options.set[1];
+
+        if (validateOptionValue(optionsValue)) showHelp();
+        const setRes = {
+          aliasName: keyName,
+          options: optionsValue,
+          runCommand: optionsValue
+            .split(",")
+            .map((part) => part.replace(":", " "))
+            .join(" "),
+        };
+        await kv.set(["aliases", keyName], setRes);
+        kv.close();
+        console.log(JSON.stringify(setRes, null, 2));
+        Deno.exit(0);
+      }
+    });
 
   try {
     const parsed = await command.parse(args as string[]);
