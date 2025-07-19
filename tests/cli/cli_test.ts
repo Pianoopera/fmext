@@ -5,7 +5,7 @@ export async function runCLI(
   args: string[],
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   const cmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-read", "./mod.ts", ...args],
+    args: ["run", "--unstable-kv", "-R", "-W", "--allow-read", "./mod.ts", ...args],
     stdout: "piped",
     stderr: "piped",
   });
@@ -17,6 +17,17 @@ export async function runCLI(
     stderr: new TextDecoder().decode(stderr),
     code,
   };
+}
+
+export async function deleteAllAliases() {
+  const kv = await Deno.openKv();
+  const entries = kv.list({ prefix: [] });
+
+  for await (const entry of entries) {
+    await kv.delete(entry.key);
+  }
+
+  kv.close();
 }
 
 function parsedOutput(output: string): {

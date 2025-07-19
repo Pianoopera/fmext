@@ -1,12 +1,17 @@
 import { assert } from "jsr:@std/assert/assert";
 import { assertEquals } from "jsr:@std/assert/equals";
-import { runCLI } from "./cli_test.ts";
+import { deleteAllAliases, runCLI } from "./cli_test.ts";
+import type { Aliases } from "../../src/types.ts";
 
 function parsedOutput(output: string): {
   aliasName: string;
   options: string;
   runCommand: string;
 } {
+  return JSON.parse(output.trim());
+}
+
+function parsedOutputToList(output: string): Aliases[] {
   return JSON.parse(output.trim());
 }
 
@@ -38,7 +43,7 @@ Deno.test("CLI - alias subcommand set", async (t) => {
     const output = parsedOutput(result.stdout);
     assertEquals(output.aliasName, "keyTags");
     assertEquals(output.options, "-k:tags");
-    assertEquals(output.runCommand, "fmext alias run keyTags");
+    assertEquals(output.runCommand, "-k tags");
   });
   await t.step("CLI - alias subcommand set with invalid alias", async () => {
     const result = await runCLI([
@@ -84,6 +89,64 @@ Deno.test("CLI - alias subcommand set", async (t) => {
     const output = parsedOutput(result.stdout);
     assertEquals(output.aliasName, "keyTags");
     assertEquals(output.options, "-k:tags,-v:react");
-    assertEquals(output.runCommand, "fmext alias run keyTags");
+    assertEquals(output.runCommand, "-k tags -v react");
   });
 });
+
+Deno.test("CLI - alias subcommand list", async (t) => {
+  await t.step("CLI - alias subcommand list with no aliases", async () => {
+    await deleteAllAliases()
+    const result = await runCLI(["alias", "-l"]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutputToList(result.stdout);
+    assertEquals(output, []);
+  });
+
+  await t.step("CLI - alias subcommand list with existing aliases", async () => {
+    // First, set an alias
+    await deleteAllAliases()
+    await runCLI(["alias", "-s", "keyTags", "-k:tags"]);
+
+    const result = await runCLI(["alias", "-l"]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutputToList(result.stdout);
+    assertEquals(output.length, 1);
+    assertEquals(output[0].aliasName, "keyTags");
+    assertEquals(output[0].options, "-k:tags");
+    assertEquals(output[0].runCommand, "-k tags");
+  });
+
+  await t.step("CLI - alias subcommand list with multiple aliases", async () => {
+    await deleteAllAliases()
+    await runCLI(["alias", "-s", "keyTags", "-k:tags"]);
+    await runCLI(["alias", "-s", "keyValue", "-v:react"]);
+
+    const result = await runCLI(["alias", "-l"]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutputToList(result.stdout);
+    assertEquals(output.length, 2);
+    assertEquals(output[0].aliasName, "keyTags");
+    assertEquals(output[0].options, "-k:tags");
+    assertEquals(output[0].runCommand, "-k tags");
+    assertEquals(output[1].aliasName, "keyValue");
+    assertEquals(output[1].options, "-v:react");
+    assertEquals(output[1].runCommand, "-v react");
+  });
+
+  await t.step("CLI - alias subcommand list with multiple option alias", async () => {
+    await deleteAllAliases()
+    await runCLI(["alias", "-s", "keyTags", "-k:tags,-v:react"]);
+
+    const result = await runCLI(["alias", "-l"]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutputToList(result.stdout);
+    assertEquals(output.length, 1);
+    assertEquals(output[0].aliasName, "keyTags");
+    assertEquals(output[0].options, "-k:tags,-v:react");
+    assertEquals(output[0].runCommand, "-k tags -v react");
+  })
+})

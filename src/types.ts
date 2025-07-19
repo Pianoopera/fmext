@@ -55,3 +55,7 @@ export type CLIResult = {
     value: number;
   }[] | unknown;
 };
+
+export type Aliases = {
+  [aliasName: string]: string;
+}

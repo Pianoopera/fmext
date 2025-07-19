@@ -1,6 +1,7 @@
 import { Command } from "@cliffy/command";
-import type { CLIArgs } from "./types.ts";
+import type { Aliases, CLIArgs } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
+import { validateOptionValue } from "./aliasLogic.ts";
 
 export type DenoArgs = readonly string[];
 
@@ -49,7 +50,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       "Set new alias `alias set keyTags -k:tags,-v:react`",
     )
     .option("-r, --remove <name:string>", "Remove alias")
-    .action((options) => {
+    .action(async (options) => {
       const showHelp = () => {
         command.getCommand("alias")?.showHelp();
         Deno.exit(0);
@@ -58,20 +59,22 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         showHelp();
       }
 
-      function validateOptionValue(value: string): boolean {
-        const validOptions = ["-k", "-v", "-f", "--key", "--value", "--filter"];
-        const parts = value.split(",");
+      if (options.list) {
+        const kv = await Deno.openKv();
+        const aliases: Aliases[] = [];
+        try {
+          const aliasEntries = kv.list<Aliases>({ prefix: ["aliases"] });
 
-        // -k:tags,-v:react のような形式で来るため左辺の部分をチェック
-        let isValid = false;
-
-        for (const part of parts) {
-          const [key] = part.split(":");
-          if (!validOptions.includes(key)) {
-            isValid = true;
+          if (aliasEntries) {
+            for await (const entry of aliasEntries) {
+              aliases.push(entry.value);
+            }
           }
+        } finally {
+          kv.close();
+          console.log(JSON.stringify(aliases, null, 2));
+          Deno.exit(0);
         }
-        return isValid;
       }
 
       if (options.set) {
@@ -85,8 +88,17 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         const setRes = {
           aliasName: keyName,
           options: optionsValue,
-          runCommand: `fmext alias run ${keyName}`,
+          // runCommand: "keyName OptionsValueで実行"したい,
+          // -k:tags,-v:reactを -k tags -v reactのように変換して登録
+          // :をスペースに変換
+          runCommand: optionsValue
+            .split(",")
+            .map((part) => part.replace(":", " "))
+            .join(" "),
         };
+        const kv = await Deno.openKv();
+        await kv.set(["aliases", keyName], setRes);
+        kv.close();
         console.log(JSON.stringify(setRes, null, 2));
         Deno.exit(0);
       }
