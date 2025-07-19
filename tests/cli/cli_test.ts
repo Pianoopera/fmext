@@ -1,11 +1,21 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import type { CLIResult } from "../../src/types.ts";
+import process from "node:process";
 
 export async function runCLI(
   args: string[],
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   const cmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--unstable-kv", "-R", "-W", "--allow-read", "./mod.ts", ...args],
+    args: [
+      "run",
+      "--unstable-kv",
+      "-R",
+      "-W",
+      "--allow-read",
+      "--allow-env=HOME,USERPROFILE",
+      "./mod.ts",
+      ...args,
+    ],
     stdout: "piped",
     stderr: "piped",
   });
@@ -20,7 +30,8 @@ export async function runCLI(
 }
 
 export async function deleteAllAliases() {
-  const kv = await Deno.openKv();
+  const HOME = process.env.HOME || process.env.USERPROFILE;
+  const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
   const entries = kv.list({ prefix: [] });
 
   for await (const entry of entries) {

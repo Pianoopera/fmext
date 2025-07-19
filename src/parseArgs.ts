@@ -2,6 +2,7 @@ import { Command } from "@cliffy/command";
 import type { Aliases, CLIArgs } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
 import { validateOptionValue } from "./aliasLogic.ts";
+import process from "node:process";
 
 export type DenoArgs = readonly string[];
 
@@ -11,6 +12,8 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     filters: [],
     help: false,
   };
+
+  const HOME = process.env.HOME || process.env.USERPROFILE;
 
   const command = new Command()
     .name("fmext")
@@ -59,8 +62,9 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         showHelp();
       }
 
+      const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
+
       if (options.list) {
-        const kv = await Deno.openKv();
         const aliases: Aliases[] = [];
         try {
           const aliasEntries = kv.list<Aliases>({ prefix: ["aliases"] });
@@ -88,15 +92,11 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         const setRes = {
           aliasName: keyName,
           options: optionsValue,
-          // runCommand: "keyName OptionsValueで実行"したい,
-          // -k:tags,-v:reactを -k tags -v reactのように変換して登録
-          // :をスペースに変換
           runCommand: optionsValue
             .split(",")
             .map((part) => part.replace(":", " "))
             .join(" "),
         };
-        const kv = await Deno.openKv();
         await kv.set(["aliases", keyName], setRes);
         kv.close();
         console.log(JSON.stringify(setRes, null, 2));

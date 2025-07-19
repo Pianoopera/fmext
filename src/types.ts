@@ -58,4 +58,4 @@ export type CLIResult = {
 
 export type Aliases = {
   [aliasName: string]: string;
-}
+};
