@@ -2,7 +2,7 @@ import { Command } from "@cliffy/command";
 import type { Aliases, CLIArgs } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
 import { validateOptionValue } from "./aliasLogic.ts";
-import process from "node:process";
+import { FMEXT_STATE } from "./config.ts";
 
 export type DenoArgs = readonly string[];
 
@@ -12,8 +12,6 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
     filters: [],
     help: false,
   };
-
-  const HOME = process.env.HOME || process.env.USERPROFILE;
 
   const command = new Command()
     .name("fmext")
@@ -62,7 +60,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         showHelp();
       }
 
-      const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
+      const kv = await Deno.openKv(FMEXT_STATE);
 
       if (options.list) {
         const aliases: Aliases[] = [];

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --unstable-kv -R -W --allow-run --allow-env=HOME,USERPROFILE",
+    "test": "deno test --unstable-kv -R -W --allow-run --allow-env=HOME,USERPROFILE,DB_PATH",
     "fmt": "deno fmt",
     "lint": "deno lint",
     "build": "deno compile -R -W --output ./dist/fmext ./mod.ts",

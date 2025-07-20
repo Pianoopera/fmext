@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import type { CLIResult } from "../../src/types.ts";
 import process from "node:process";
+import { FMEXT_STATE } from "../../src/config.ts";
 
 export async function runCLI(
   args: string[],
@@ -11,8 +12,7 @@ export async function runCLI(
       "--unstable-kv",
       "-R",
       "-W",
-      "--allow-read",
-      "--allow-env=HOME,USERPROFILE",
+      "--allow-env=HOME,USERPROFILE,DB_PATH",
       "./mod.ts",
       ...args,
     ],
@@ -30,8 +30,7 @@ export async function runCLI(
 }
 
 export async function deleteAllAliases() {
-  const HOME = process.env.HOME || process.env.USERPROFILE;
-  const kv = await Deno.openKv(`${HOME}/fmext_aliases.sqlite3`);
+  const kv = await Deno.openKv(FMEXT_STATE);
   const entries = kv.list({ prefix: [] });
 
   for await (const entry of entries) {
