@@ -64,3 +64,7 @@ export interface DeleteAlias {
   aliasName: string;
   success: boolean;
 }
+
+export interface DeleteAllAliases {
+  success: boolean;
+}

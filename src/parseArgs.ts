@@ -1,5 +1,10 @@
 import { Command } from "@cliffy/command";
-import type { Aliases, CLIArgs, DeleteAlias } from "./types.ts";
+import type {
+  Aliases,
+  CLIArgs,
+  DeleteAlias,
+  DeleteAllAliases,
+} from "./types.ts";
 import { getVersion } from "./getVersion.ts";
 import { validateOptionValue } from "./aliasLogic.ts";
 import { FMEXT_STATE } from "./config.ts";
@@ -51,6 +56,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       "Set new alias `alias set keyTags -k:tags,-v:react`",
     )
     .option("-r, --remove <name:string>", "Remove alias")
+    .option("--remove-all", "Remove all aliases")
     .action(async (options) => {
       const showHelp = () => {
         command.getCommand("alias")?.showHelp();
@@ -61,6 +67,22 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       }
 
       const kv = await Deno.openKv(FMEXT_STATE);
+
+      if (options.removeAll) {
+        const kv = await Deno.openKv(FMEXT_STATE);
+        const entries = kv.list({ prefix: [] });
+
+        for await (const entry of entries) {
+          await kv.delete(entry.key);
+        }
+
+        kv.close();
+        const deleteAll: DeleteAllAliases = {
+          success: true,
+        };
+        console.log(JSON.stringify(deleteAll, null, 2));
+        Deno.exit(0);
+      }
 
       if (options.remove) {
         const kvEntry = await kv.get<Aliases>(["aliases", options.remove]);
