@@ -1,5 +1,5 @@
 import { Command } from "@cliffy/command";
-import type { Aliases, CLIArgs } from "./types.ts";
+import type { Aliases, CLIArgs, DeleteAlias } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
 import { validateOptionValue } from "./aliasLogic.ts";
 import { FMEXT_STATE } from "./config.ts";
@@ -61,6 +61,25 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       }
 
       const kv = await Deno.openKv(FMEXT_STATE);
+
+      if (options.remove) {
+        const kvEntry = await kv.get<Aliases>(["aliases", options.remove]);
+        const success = !!kvEntry.value;
+
+        if (success) {
+          await kv.delete(["aliases", options.remove]);
+        }
+
+        kv.close();
+
+        const deleteAlias: DeleteAlias = {
+          aliasName: options.remove,
+          success,
+        };
+
+        console.log(JSON.stringify(deleteAlias, null, 2));
+        Deno.exit(0);
+      }
 
       if (options.list) {
         const aliases: Aliases[] = [];

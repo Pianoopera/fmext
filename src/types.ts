@@ -59,3 +59,8 @@ export type CLIResult = {
 export type Aliases = {
   [aliasName: string]: string;
 };
+
+export interface DeleteAlias {
+  aliasName: string;
+  success: boolean;
+}

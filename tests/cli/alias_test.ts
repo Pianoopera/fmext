@@ -1,7 +1,7 @@
 import { assert } from "jsr:@std/assert/assert";
 import { assertEquals } from "jsr:@std/assert/equals";
 import { deleteAllAliases, runCLI } from "./cli_test.ts";
-import type { Aliases } from "../../src/types.ts";
+import type { Aliases, DeleteAlias } from "../../src/types.ts";
 
 function parsedOutput(output: string): {
   aliasName: string;
@@ -12,6 +12,10 @@ function parsedOutput(output: string): {
 }
 
 function parsedOutputToList(output: string): Aliases[] {
+  return JSON.parse(output.trim());
+}
+
+function deleteAliasOutput(output: string): DeleteAlias {
   return JSON.parse(output.trim());
 }
 
@@ -164,6 +168,34 @@ Deno.test("CLI - alias subcommand list", async (t) => {
       assertEquals(output[0].aliasName, "keyTags");
       assertEquals(output[0].options, "-k:tags,-v:react");
       assertEquals(output[0].runCommand, "-k tags -v react");
+    },
+  );
+});
+
+Deno.test("CLI - alias subcommand remove options", async (t) => {
+  await t.step(
+    "CLI - alias subcommand remove with existing alias",
+    async () => {
+      await deleteAllAliases();
+      await runCLI(["alias", "-s", "keyTags", "-k:tags"]);
+
+      const result = await runCLI(["alias", "-r", "keyTags"]);
+
+      assertEquals(result.code, 0);
+      const output = deleteAliasOutput(result.stdout);
+      assertEquals(output.aliasName, "keyTags");
+      assert(output.success);
+    },
+  );
+  await t.step(
+    "CLI - alias subcommand remove with non-existing alias",
+    async () => {
+      const result = await runCLI(["alias", "--remove", "nonExistingAlias"]);
+
+      assertEquals(result.code, 0);
+      const output = deleteAliasOutput(result.stdout);
+      assertEquals(output.aliasName, "nonExistingAlias");
+      assert(!output.success);
     },
   );
 });

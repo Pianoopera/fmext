@@ -1,6 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import type { CLIResult } from "../../src/types.ts";
-import process from "node:process";
 import { FMEXT_STATE } from "../../src/config.ts";
 
 export async function runCLI(
