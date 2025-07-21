@@ -152,7 +152,6 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
 
       const kvEntry = await kv.get<Aliases>(["aliases", aliasName]);
       if (!kvEntry.value) {
-        command.getCommand("alias")?.getCommand("run")?.showHelp();
         kv.close();
         throw new ValidationError("Alias not found: " + aliasName, {
           exitCode: 2,
