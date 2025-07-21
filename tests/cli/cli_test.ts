@@ -12,6 +12,7 @@ export async function runCLI(
       "-R",
       "-W",
       "--allow-env=HOME,USERPROFILE,DB_PATH",
+      "--allow-run",
       "./mod.ts",
       ...args,
     ],

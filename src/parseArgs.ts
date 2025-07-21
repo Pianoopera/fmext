@@ -1,4 +1,4 @@
-import { Command } from "@cliffy/command";
+import { Command, ValidationError } from "@cliffy/command";
 import type {
   Aliases,
   CLIArgs,
@@ -8,6 +8,7 @@ import type {
 import { getVersion } from "./getVersion.ts";
 import { validateOptionValue } from "./aliasLogic.ts";
 import { FMEXT_STATE } from "./config.ts";
+import { executeCommand } from "./executeCmd.ts";
 
 export type DenoArgs = readonly string[];
 
@@ -141,6 +142,28 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         console.log(JSON.stringify(setRes, null, 2));
         Deno.exit(0);
       }
+    });
+
+  command.getCommand("alias")?.command("run")
+    .description("Run command by alias name")
+    .arguments("<aliasName:string> [files...:string]")
+    .action(async (_options, aliasName, files) => {
+      const kv = await Deno.openKv(FMEXT_STATE);
+
+      const kvEntry = await kv.get<Aliases>(["aliases", aliasName]);
+      if (!kvEntry.value) {
+        command.getCommand("alias")?.getCommand("run")?.showHelp();
+        kv.close();
+        throw new ValidationError("Alias not found: " + aliasName, {
+          exitCode: 2,
+        });
+      }
+      const alias = kvEntry.value;
+      const runCommand = alias.runCommand.split(" ");
+      const res = await executeCommand(runCommand, files);
+      kv.close();
+      console.log(JSON.stringify(res, null, 2));
+      Deno.exit(0);
     });
 
   try {

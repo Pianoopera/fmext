@@ -3,6 +3,7 @@ import { assertEquals } from "jsr:@std/assert/equals";
 import { deleteAllAliases, runCLI } from "./cli_test.ts";
 import type {
   Aliases,
+  CLIResult,
   DeleteAlias,
   DeleteAllAliases,
 } from "../../src/types.ts";
@@ -25,6 +26,20 @@ function deleteAliasOutput(output: string): DeleteAlias {
 
 function deleteAllAliasesOutput(output: string): DeleteAllAliases {
   return JSON.parse(output.trim());
+}
+
+function executeRes(output: string): CLIResult[] {
+  return JSON.parse(output.trim());
+}
+
+function targetKeyValue(
+  parsed: CLIResult,
+  key: string,
+): { value: string }[] {
+  if (!parsed.output || !Array.isArray(parsed.output)) {
+    return [];
+  }
+  return parsed.output.filter((o) => o.value === key);
 }
 
 Deno.test("CLI - alias subcommand help", async (t) => {
@@ -221,6 +236,41 @@ Deno.test("CLI - alias subcommand remove-all options", async (t) => {
       assertEquals(result.code, 0);
       const output = deleteAllAliasesOutput(result.stdout);
       assert(output.success);
+    },
+  );
+});
+
+Deno.test("CLI - alias subcommand alias run command", async (t) => {
+  await t.step("CLI - alias subcommand run with valid alias", async () => {
+    await deleteAllAliases();
+    await runCLI(["alias", "-s", "keyTags", "-k:tags,-v:react"]);
+
+    const result = await runCLI([
+      "alias",
+      "run",
+      "keyTags",
+      "tests/fixtures/count-test-1.md",
+    ]);
+
+    assertEquals(result.code, 0);
+    const output = executeRes(result.stdout);
+    assertEquals(output.length, 1);
+    assertEquals(output[0].file, "tests/fixtures/count-test-1.md");
+    const extKeyValue = targetKeyValue(output[0], "react");
+    assert(extKeyValue.length > 0);
+    assertEquals(extKeyValue[0].value, "react");
+  });
+
+  await t.step(
+    "CLI - alias subcommand run with non-existing alias",
+    async () => {
+      const result = await runCLI(["alias", "run", "nonExistingAlias"]);
+
+      assertEquals(result.code, 2);
+      assert(result.stdout.includes("fmext alias"));
+      assert(result.stdout.includes("Description:"));
+      assert(result.stdout.includes("Options:"));
+      assert(result.stderr.includes("Alias not found: nonExistingAlias"));
     },
   );
 });
