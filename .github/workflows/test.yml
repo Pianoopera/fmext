@@ -19,6 +19,9 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Install dependencies
+        run: deno install --frozen
+      
       - name: Run linter
         run: deno lint
 
@@ -26,4 +29,8 @@ jobs:
         run: deno fmt --check
 
       - name: Run tests
-        run: deno task test
+        run: deno task test --clean
+        env:
+          HOME: ${{ github.workspace }}
+          USERPROFILE: ${{ github.workspace }}
+          DB_PATH: .fmext_aliases.sqlite3

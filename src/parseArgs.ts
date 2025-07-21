@@ -1,6 +1,14 @@
-import { Command } from "@cliffy/command";
-import type { CLIArgs } from "./types.ts";
+import { Command, ValidationError } from "@cliffy/command";
+import type {
+  Aliases,
+  CLIArgs,
+  DeleteAlias,
+  DeleteAllAliases,
+} from "./types.ts";
 import { getVersion } from "./getVersion.ts";
+import { deleteAllAliases, validateOptionValue } from "./aliasLogic.ts";
+import { FMEXT_STATE } from "./config.ts";
+import { executeCommand } from "./executeCmd.ts";
 
 export type DenoArgs = readonly string[];
 
@@ -24,8 +32,14 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
         collect: true,
       },
     )
-    .arguments("[files...:string]")
-    .noExit();
+    .arguments("[files...:string]");
+
+  command.command("help")
+    .description("Show help")
+    .action(() => {
+      command.showHelp();
+      Deno.exit(0);
+    });
 
   command.command("version")
     .description("Show version")
@@ -35,17 +49,114 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       Deno.exit(0);
     });
 
-  command.command("help")
-    .description("Show help")
-    .action(() => {
-      command.showHelp();
-      Deno.exit(0);
+  command.command("alias")
+    .description("Manage command aliases")
+    .option("-l, --list", "List all aliases")
+    .option(
+      "-s, --set <alias:string> <optionValue:string>",
+      "Set new alias `alias set keyTags -k:tags,-v:react`",
+    )
+    .option("-r, --remove <name:string>", "Remove alias")
+    .option("--remove-all", "Remove all aliases")
+    .action(async (options) => {
+      const showHelp = () => {
+        command.getCommand("alias")?.showHelp();
+        Deno.exit(0);
+      };
+      if (Object.keys(options).length === 0) {
+        showHelp();
+      }
+
+      const kv = await Deno.openKv(FMEXT_STATE);
+
+      if (options.removeAll) {
+        await deleteAllAliases();
+        const deleteAll: DeleteAllAliases = {
+          success: true,
+        };
+        console.log(JSON.stringify(deleteAll, null, 2));
+        Deno.exit(0);
+      }
+
+      if (options.remove) {
+        const kvEntry = await kv.get<Aliases>(["aliases", options.remove]);
+        const success = !!kvEntry.value;
+
+        if (success) {
+          await kv.delete(["aliases", options.remove]);
+        }
+
+        kv.close();
+
+        const deleteAlias: DeleteAlias = {
+          aliasName: options.remove,
+          success,
+        };
+
+        console.log(JSON.stringify(deleteAlias, null, 2));
+        Deno.exit(0);
+      }
+
+      if (options.list) {
+        const aliases: Aliases[] = [];
+        try {
+          const aliasEntries = kv.list<Aliases>({ prefix: ["aliases"] });
+
+          if (aliasEntries) {
+            for await (const entry of aliasEntries) {
+              aliases.push(entry.value);
+            }
+          }
+        } finally {
+          kv.close();
+          console.log(JSON.stringify(aliases, null, 2));
+          Deno.exit(0);
+        }
+      }
+
+      if (options.set) {
+        if (options.set.length < 2) {
+          showHelp();
+        }
+        const keyName = options.set[0];
+        const optionsValue = options.set[1];
+
+        if (validateOptionValue(optionsValue)) showHelp();
+        const setRes = {
+          aliasName: keyName,
+          options: optionsValue,
+          runCommand: optionsValue
+            .split(",")
+            .map((part) => part.replace(":", " "))
+            .join(" "),
+        };
+        await kv.set(["aliases", keyName], setRes);
+        kv.close();
+        console.log(JSON.stringify(setRes, null, 2));
+        Deno.exit(0);
+      }
     });
 
-  if (args.includes("-h") || args.includes("--help")) {
-    command.showHelp();
-    Deno.exit(0);
-  }
+  command.getCommand("alias")?.command("run")
+    .description("Run command by alias name")
+    .arguments("<aliasName:string> [files...:string]")
+    .action(async (_options, aliasName, ...files) => {
+      const kv = await Deno.openKv(FMEXT_STATE);
+
+      const kvEntry = await kv.get<Aliases>(["aliases", aliasName]);
+      if (!kvEntry.value) {
+        kv.close();
+        throw new ValidationError("Alias not found: " + aliasName, {
+          exitCode: 2,
+        });
+      }
+      const alias = kvEntry.value;
+      const runCommand = alias.runCommand.split(" ");
+      const res = await executeCommand(runCommand, files);
+      kv.close();
+      console.log(JSON.stringify(res, null, 2));
+      Deno.exit(0);
+    });
 
   try {
     const parsed = await command.parse(args as string[]);

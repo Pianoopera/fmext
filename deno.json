@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --allow-read --allow-run",
+    "test": "deno test --unstable-kv -R -W --allow-run --allow-env=HOME,USERPROFILE,DB_PATH",
     "fmt": "deno fmt",
     "lint": "deno lint",
-    "build": "deno compile --allow-read --output ./dist/fmext ./mod.ts",
+    "build": "deno compile -R -W --output ./dist/fmext ./mod.ts",
     "dev": "deno run --allow-read ./mod.ts"
   },
   "imports": {

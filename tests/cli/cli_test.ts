@@ -1,11 +1,20 @@
 import { assert, assertEquals } from "jsr:@std/assert";
-import type { CLIResult } from "../src/types.ts";
+import type { CLIResult } from "../../src/types.ts";
 
-async function runCLI(
+export async function runCLI(
   args: string[],
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   const cmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-read", "./mod.ts", ...args],
+    args: [
+      "run",
+      "--unstable-kv",
+      "-R",
+      "-W",
+      "--allow-env=HOME,USERPROFILE,DB_PATH",
+      "--allow-run",
+      "./mod.ts",
+      ...args,
+    ],
     stdout: "piped",
     stderr: "piped",
   });
@@ -138,7 +147,9 @@ Deno.test("CLI - nonexistent file", async () => {
 Deno.test("CLI - unknown option", async () => {
   const result = await runCLI(["--unknown"]);
 
-  assertEquals(result.code, 1);
+  assertEquals(result.code, 2);
+  assert(result.stdout.includes("Description:"));
+  assert(result.stdout.includes("Options:"));
   assert(result.stderr.includes("Unknown option"));
 });
 

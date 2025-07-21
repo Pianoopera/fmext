@@ -55,3 +55,16 @@ export type CLIResult = {
     value: number;
   }[] | unknown;
 };
+
+export type Aliases = {
+  [aliasName: string]: string;
+};
+
+export interface DeleteAlias {
+  aliasName: string;
+  success: boolean;
+}
+
+export interface DeleteAllAliases {
+  success: boolean;
+}
