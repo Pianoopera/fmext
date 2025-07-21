@@ -4,4 +4,4 @@ import { deleteAllAliases } from "../src/aliasLogic.ts";
 
 Deno.test("CLI cleanup", async () => {
   await deleteAllAliases();
-})
+});

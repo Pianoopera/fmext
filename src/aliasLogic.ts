@@ -25,7 +25,6 @@ export function validateOptionValue(value: string): boolean {
   return isValid;
 }
 
-
 export async function deleteAllAliases() {
   const kv = await Deno.openKv(FMEXT_STATE);
   const entries = kv.list({ prefix: [] });

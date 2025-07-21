@@ -6,7 +6,7 @@ import type {
   DeleteAllAliases,
 } from "./types.ts";
 import { getVersion } from "./getVersion.ts";
-import { validateOptionValue } from "./aliasLogic.ts";
+import { deleteAllAliases, validateOptionValue } from "./aliasLogic.ts";
 import { FMEXT_STATE } from "./config.ts";
 import { executeCommand } from "./executeCmd.ts";
 
@@ -70,14 +70,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       const kv = await Deno.openKv(FMEXT_STATE);
 
       if (options.removeAll) {
-        const kv = await Deno.openKv(FMEXT_STATE);
-        const entries = kv.list({ prefix: [] });
-
-        for await (const entry of entries) {
-          await kv.delete(entry.key);
-        }
-
-        kv.close();
+        await deleteAllAliases();
         const deleteAll: DeleteAllAliases = {
           success: true,
         };
