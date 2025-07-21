@@ -1,3 +1,5 @@
+import { FMEXT_STATE } from "./config.ts";
+
 export function validateOptionValue(value: string): boolean {
   const validOptions = [
     "-k",
@@ -21,4 +23,16 @@ export function validateOptionValue(value: string): boolean {
     }
   }
   return isValid;
+}
+
+
+export async function deleteAllAliases() {
+  const kv = await Deno.openKv(FMEXT_STATE);
+  const entries = kv.list({ prefix: [] });
+
+  for await (const entry of entries) {
+    await kv.delete(entry.key);
+  }
+
+  kv.close();
 }

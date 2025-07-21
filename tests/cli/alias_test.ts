@@ -1,12 +1,13 @@
 import { assert } from "jsr:@std/assert/assert";
 import { assertEquals } from "jsr:@std/assert/equals";
-import { deleteAllAliases, runCLI } from "./cli_test.ts";
+import { runCLI } from "./cli_test.ts";
 import type {
   Aliases,
   CLIResult,
   DeleteAlias,
   DeleteAllAliases,
 } from "../../src/types.ts";
+import { deleteAllAliases } from "../../src/aliasLogic.ts";
 
 function parsedOutput(output: string): {
   aliasName: string;

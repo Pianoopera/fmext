@@ -1,6 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import type { CLIResult } from "../../src/types.ts";
-import { FMEXT_STATE } from "../../src/config.ts";
 
 export async function runCLI(
   args: string[],
@@ -27,17 +26,6 @@ export async function runCLI(
     stderr: new TextDecoder().decode(stderr),
     code,
   };
-}
-
-export async function deleteAllAliases() {
-  const kv = await Deno.openKv(FMEXT_STATE);
-  const entries = kv.list({ prefix: [] });
-
-  for await (const entry of entries) {
-    await kv.delete(entry.key);
-  }
-
-  kv.close();
 }
 
 function parsedOutput(output: string): {
