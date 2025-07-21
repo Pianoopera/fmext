@@ -1,5 +1,14 @@
 export function validateOptionValue(value: string): boolean {
-  const validOptions = ["-k", "-v", "-f", "--key", "--value", "--filter"];
+  const validOptions = [
+    "-k",
+    "-v",
+    "-f",
+    "-c",
+    "--key",
+    "--value",
+    "--filter",
+    "--count",
+  ];
   const parts = value.split(",");
 
   // -k:tags,-v:react のような形式で来るため左辺の部分をチェック

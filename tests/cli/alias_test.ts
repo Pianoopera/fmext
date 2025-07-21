@@ -126,6 +126,22 @@ Deno.test("CLI - alias subcommand set", async (t) => {
     assertEquals(output.options, "-k:tags,-v:react");
     assertEquals(output.runCommand, "-k tags -v react");
   });
+
+  await t.step("CLI - alias subcommand run with --count option", async () => {
+    await deleteAllAliases();
+    const result = await runCLI([
+      "alias",
+      "-s",
+      "countKeyTags",
+      "-c,-k:tags,-v:typescript",
+    ]);
+
+    assertEquals(result.code, 0);
+    const output = parsedOutput(result.stdout);
+    assertEquals(output.aliasName, "countKeyTags");
+    assertEquals(output.options, "-c,-k:tags,-v:typescript");
+    assertEquals(output.runCommand, "-c -k tags -v typescript");
+  });
 });
 
 Deno.test("CLI - alias subcommand list", async (t) => {
