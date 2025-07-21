@@ -8,6 +8,7 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 - 🎯 **Key Extraction**: Extract specific keys with support for nested dot notation
 - 🔍 **Value Filtering**: Filter files by specific key-value pairs with array and string matching
 - 🔐 **Advanced Filtering**: Apply multiple filter conditions with AND logic
+- 📂 **Alias Management**: Create and manage command aliases for reusable configurations
 - 📊 **Value Counting**: Count occurrences of values and array elements across files
 - ❌ **Error Handling**: Robust YAML parse error handling and reporting
 - 🔍 **Multiple Files**: Process multiple files at once with glob patterns
@@ -22,14 +23,6 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 npm install -g fmext
 ```
 
-### From source (requires Deno)
-
-```bash
-git clone https://github.com/Pianoopera/fmext.git
-cd fmext
-deno compile --allow-read --output fmext mod.ts
-```
-
 ## Usage
 
 ```bash
@@ -41,19 +34,96 @@ Description:
 
 Options:
 
-  -h, --help               - Show this help.             
-  -c, --count              - Count mode                       
-  -k, --key      <key>     - Extract specific key        
-  -v, --value    <value>   - Filter by value             
-  -f, --filter   <filter>  - Filter by key=value format  
+  -h, --help              - Show this help.             
+  -c, --count             - Count mode                  
+  -k, --key     <key>     - Extract specific key        
+  -v, --value   <value>   - Filter by value             
+  -f, --filter  <filter>  - Filter by key=value format  
 
 Commands:
 
-  version  - Show version
-  help     - Show help   
+  help     - Show help             
+  version  - Show version          
+  alias    - Manage command aliases
 ```
 
-### Release Flow
+### Examples:
+
+key value extraction:
+```bash
+fmext -k topics -v typescript articles/*.md
+[
+  {
+    "file": "articles/intro.md",
+    "output": {
+      "topics": [
+        { "value": "typescript" },
+        { "value": "deno" }
+      ]
+    }
+  }
+]
+```
+
+count occurrences of a value:
+```bash
+fmext -c -k topics -v typescript articles/*.md
+{
+  "output": [
+    {
+      "key": "typescript",
+      "value": 3
+    },
+    {
+      "key": "express",
+      "value": 1
+    },
+    {
+      "key": "msw",
+      "value": 1
+    },
+    {
+      "key": "nodejs",
+      "value": 1
+    },
+    {
+      "key": "javascript",
+      "value": 2
+    },
+    {
+      "key": "npm",
+      "value": 1
+    }
+  ]
+}
+```
+
+alias management:
+```bash
+fmext alias --set myalias "-k:topics,-v:typescript"
+fmext alias --list
+[
+  {
+    "aliasName": "myalias",
+    "options": "-k:topics,-v:typescript",
+    "runCommand": "-k topics -v typescript"
+  }
+]
+fmext alias run myalias articles/*.md
+[
+  {
+    "file": "articles/intro.md",
+    "output": {
+      "topics": [
+        { "value": "typescript" },
+        { "value": "deno" }
+      ]
+    }
+  }
+]
+```
+
+## Release Flow
 
 github actions [npm-publish](https://github.com/Pianoopera/fmext/actions/workflows/npm-publish.yml)
 
@@ -82,8 +152,3 @@ inputs:
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## Related Projects
-
-- [gray-matter](https://github.com/jonschlinkert/gray-matter) - JavaScript front matter parser
-- [front-matter](https://github.com/jxson/front-matter) - Extract YAML front matter from strings
