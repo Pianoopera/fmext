@@ -273,4 +273,25 @@ Deno.test("CLI - alias subcommand alias run command", async (t) => {
       assert(result.stderr.includes("Alias not found: nonExistingAlias"));
     },
   );
+  await t.step(
+    "CLI - alias subcommand run multiple files with valid alias",
+    async () => {
+      await deleteAllAliases();
+      await runCLI(["alias", "-s", "keyTags", "-k:tags,-v:typescript"]);
+
+      const result = await runCLI([
+        "alias",
+        "run",
+        "keyTags",
+        "tests/fixtures/count-test-1.md",
+        "tests/fixtures/count-test-2.md",
+      ]);
+
+      assertEquals(result.code, 0);
+      const output = executeRes(result.stdout);
+      assertEquals(output.length, 2);
+      assertEquals(output[0].file, "tests/fixtures/count-test-1.md");
+      assertEquals(output[1].file, "tests/fixtures/count-test-2.md");
+    },
+  );
 });

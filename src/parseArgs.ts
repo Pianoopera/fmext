@@ -147,7 +147,7 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
   command.getCommand("alias")?.command("run")
     .description("Run command by alias name")
     .arguments("<aliasName:string> [files...:string]")
-    .action(async (_options, aliasName, files) => {
+    .action(async (_options, aliasName, ...files) => {
       const kv = await Deno.openKv(FMEXT_STATE);
 
       const kvEntry = await kv.get<Aliases>(["aliases", aliasName]);
