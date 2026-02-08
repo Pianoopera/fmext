@@ -1,4 +1,5 @@
 import { Command, ValidationError } from "@cliffy/command";
+import { CompletionsCommand } from "@cliffy/command/completions";
 import type {
   Aliases,
   CLIArgs,
@@ -48,6 +49,9 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
       console.log(version);
       Deno.exit(0);
     });
+
+  command.command("completions", new CompletionsCommand())
+    .description("Generate shell completions (bash, fish, zsh)");
 
   command.command("alias")
     .description("Manage command aliases")
@@ -160,6 +164,10 @@ export async function parseArgs(args: DenoArgs): Promise<CLIArgs> {
 
   try {
     const parsed = await command.parse(args as string[]);
+
+    if (parsed.cmd.getPath().startsWith("completions")) {
+      Deno.exit(0);
+    }
 
     result.count = !!parsed.options.count;
     result.key = parsed.options.key!;
