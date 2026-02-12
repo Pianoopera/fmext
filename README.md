@@ -23,16 +23,6 @@ A fast and reliable YAML Front Matter parser CLI tool built with Deno. Extract a
 npm install -g fmext
 ```
 
-### Zsh 補完の有効化
-
-zsh で補完を使うには、`~/.zshrc` に以下を追加してください。
-
-```bash
-source <(fmext completions zsh)
-```
-
-補完スクリプトは `fmext completions zsh` で出力されます。bash や fish の補完も同様に `fmext completions bash` / `fmext completions fish` で取得できます。
-
 ## Usage
 
 ```bash

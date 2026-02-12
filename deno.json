@@ -14,8 +14,7 @@
     "@std/path": "jsr:@std/path@^1.0.8",
     "@std/fs": "jsr:@std/fs@^1.0.5",
     "@std/testing": "jsr:@std/testing@^1.0.3",
-    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
-    "@cliffy/command/completions": "jsr:@cliffy/command@^1.0.0-rc.7/completions"
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7"
   },
   "exclude": ["dist/", "node_modules/"],
   "compilerOptions": {
